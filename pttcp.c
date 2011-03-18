@@ -1,6 +1,6 @@
 /*********************************************************************
  *
- * $Id: pttcp.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
+ * $Id: pttcp.c,v 2.2 2000/08/09 13:16:08 rmm1002 Exp $
  *
  */
 
@@ -76,9 +76,9 @@ unsigned int num_ports = 32;
 double       scalar    = 1.0;
 int          verbose   = 0;
 
-const struct timeval tsmallerpause = { 0, 1 };    /* 1us */
+const struct timeval tsmallerpause = { 0,    1 }; /* 1us */
 const struct timeval tpause        = { 0, 1000 }; /* 1ms */
-const struct timeval tzero         = { 0, 0    }; 
+const struct timeval tzero         = { 0,    0 }; 
 
 extern char *optarg;
 extern int optind, opterr, optopt;
@@ -94,6 +94,7 @@ static const struct option long_options[] =
     { "objperpage", 1, 0, 1002 },
     { "interobj",   1, 0, 1003 },
     { "objsize",    1, 0, 1004 },
+
     /* END OF ARRAY MARKER */
     { 0,            0, 0,    0 }
 };
@@ -108,13 +109,14 @@ shut_sockets(int signum)
 
     if(signum == SIGALRM) 
     {
-	  if(verbose) {
+	if(verbose) 
+	{
 	    fprintf(stderr,"timesup\n");
-      }
+      	}
     }
-
-	if(verbose) {
-      printf("Shutdown called\n");
+    if(verbose) 
+    {
+	printf("Shutdown called\n");
     }
     for(i=0; i <= maxfd; i++)
     {
@@ -137,15 +139,16 @@ usage(char *name)
 	    "[clt] %s -c <server> [-n <conns>] [-b <bytes>]\n"
 	    "[rxr] %s -r\n"
 	    "[txr] %s -t <receiver> [-n <conns>] [-b <bytes>]\n"
-	    "[surge_clt] %s -C <server> [-n <conns>]\n"
-		"        [--<objsize|interobj|objperpage|interpage>\n"
-		"         <constant <value>|exponent <mean>|pareto <mean> <shape>>]\n"
-	    "commands valid for all generators\n"
-	    "[-D <scaling> (of timers)]\n"
-	    "[-T <runtime>]\n"
-	    "[-B <port base>]\n"
-	    "[-N <number of ports>]\n"
-	    "[-R <random number seed>]\n",
+	    "[surge_clt] %s -S <server> [-n <conns>]\n"
+	    "            [--<objsize|interobj|objperpage|interpage>\n"
+	    "             <constant <value>|exponent <mean>|pareto <mean> <shape>>]\n"
+	    "\n"
+	    "Commands valid for all generators\n"
+	    "    [-D <scaling> (of timers)]\n"
+	    "    [-T <runtime>]\n"
+	    "    [-B <port base>]\n"
+	    "    [-N <number of ports>]\n"
+	    "    [-R <random number seed>]\n",
 	    name, name, name, name, name);
     exit(1);
 }
@@ -166,7 +169,7 @@ main(int argc, char **argv)
     objsize.mean        = 1e6;
     objsize.function    = constant;
 
-    while((c = getopt_long(argc, argv, "S:vR:B:N:D:T:C:rt:sc:n:b:", 
+    while((c = getopt_long(argc, argv, "S:vR:B:N:D:T:rt:sc:n:b:",
 			   long_options, NULL)) != -1) 
     {
 	switch(c) 
@@ -174,34 +177,39 @@ main(int argc, char **argv)
 	    case 'v':
 		verbose++;
 		break;
+
 	    case 1001:
-		rc = parse_distn(&interpage, optind, argv, argc);
+		rc = parse_distn(&interpage, &optind, argv, argc);
 		if(rc<0) 
 		{
 		    usage(argv[0]);
 		}
 		break;
+
 	    case 1002:
-		rc = parse_distn(&objperpage, optind, argv, argc);
+		rc = parse_distn(&objperpage, &optind, argv, argc);
 		if(rc<0) 
 		{
 		    usage(argv[0]);
 		}
 		break;
+
 	    case 1003:
-		rc = parse_distn(&interobj, optind, argv, argc);
+		rc = parse_distn(&interobj, &optind, argv, argc);
 		if(rc<0) 
 		{
 		    usage(argv[0]);
 		}
 		break;
+
 	    case 1004:
-		rc = parse_distn(&objsize, optind, argv, argc);
+		rc = parse_distn(&objsize, &optind, argv, argc);
 		if(rc<0) 
 		{
 		    usage(argv[0]);
 		}
 		break;
+
 	    case 'R':
 	    {
 		unsigned short seed_16v[3];
@@ -219,8 +227,9 @@ main(int argc, char **argv)
 		seed_16v[1] = (short)((~0xffffl & full_seed) >> 16);
 		seed_16v[2] = (short)((~0xffl & full_seed) >> 8); /* XXX */
 		(void)seed48(seed_16v);
+		break;
 	    }
-	    break;
+
 	    case 'r':          /* receiver */
 		if(mode == unset)
 		{
@@ -325,17 +334,18 @@ main(int argc, char **argv)
 	
 	run_time = run_time * scalar;
 	
-	run_time_timerval.it_interval.tv_sec = 0;
+	run_time_timerval.it_interval.tv_sec  = 0;
 	run_time_timerval.it_interval.tv_usec = 0;
 	
 	run_time_timerval.it_value.tv_sec = (int) run_time;
 	run_time_timerval.it_value.tv_usec = 
 	    (int) ((run_time - (double)run_time_timerval.it_value.tv_sec) * 1e6 );
 
-	if(verbose) {
-		fprintf(stderr,"run time %d.%06d\n",
-			(int)run_time_timerval.it_interval.tv_sec,
-			(int)run_time_timerval.it_interval.tv_usec);
+	if(verbose) 
+	{
+	    fprintf(stderr,"run time %d.%06d\n",
+		    (int)run_time_timerval.it_interval.tv_sec,
+		    (int)run_time_timerval.it_interval.tv_usec);
 	}
 	
 	
@@ -349,26 +359,33 @@ main(int argc, char **argv)
 
     switch(mode)    
     {
-	case unset:
-	    usage(argv[0]);
 	case rx:
 	    simple_rx(num_ports, base_port);
 	    break;
+
 	case tx:
 	    simple_tx(n, bytes, dhost, num_ports, base_port);
 	    break;
+
 	case svr:
 	    simple_server(num_ports, base_port);
 	    break;
+
 	case simple_clt:
 	    simple_client(n, bytes, dhost, num_ports, base_port);
 	    break;
+
 	case cts_clt:
 	    continuous_client(n, bytes, dhost, num_ports, base_port);
 	    break;
+
 	case surge_clt:
 	    surge_client(n, dhost, num_ports, base_port);
 	    break;
+	    
+	case unset:
+	default:
+	    usage(argv[0]);
     }
     return 0;
 }

@@ -1,6 +1,6 @@
 /***********************************************************************
  * 
- * $Id: surge_clt.h,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
+ * $Id: surge_clt.h,v 2.1 2000/08/09 13:17:50 rmm1002 Exp $
  *
  */
 
@@ -61,6 +61,6 @@ double constant(distn*);
 double expon(distn*);
 double pareto(distn*);
 
-int    parse_distn(distn*, int, char**, int);
+int    parse_distn(distn*, int*, char**, int);
 
 #endif /* _surge_clt_h_ */

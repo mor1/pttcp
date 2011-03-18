@@ -1,6 +1,6 @@
 /***********************************************************************
  * 
- * $Id: surge_clt.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
+ * $Id: surge_clt.c,v 2.1 2000/08/09 13:15:41 rmm1002 Exp $
  *
  */
 
@@ -200,117 +200,116 @@ double paretoon(distn *d)
 }
 
 int
-parse_distn(distn *distribution,int optind,char **argv, int argc)
+parse_distn(distn *distribution, int *optind, char **argv, int argc)
 {
     int rv=0,rc;
     int theType;
 
-    optind--;
-
-
-    for ( theType = 0; theType < Distn_Function_nTypes; theType++ ) 
+    (*optind)--;
+    for(theType=0; theType < Distn_Function_nTypes; theType++) 
     {
-        if ( !strncmp( argv[optind] , Distn_Function_Type[theType],255 ) ) 
+        if(!strncmp(argv[*optind], Distn_Function_Type[theType], 255)) 
 	    break;
     }
-
-
     switch(theType) 
     {
 	case Distn_Function_Constant:
 	{
-	    int argindex=optind;
-
-		if((argc - optind) < 2) {
-			fprintf(stderr,
-				__FUNCTION__ ": constant requries one argument\n");
+	    if((argc - *optind) < 2) 
+	    {
+		fprintf(stderr,
+			__FUNCTION__ ": constant requries one argument\n");
 	    	rv = -1;
-			goto abort;
-		}
+		goto abort;
+	    }
 
 	    /* one additional argument for a constant generator, the
 	     * constant itself (or `mean') */
 	    distribution->function = constant;
 
-	    argindex++;
-
-	    rc = sscanf(argv[argindex],"%lg",&distribution->mean);
+	    (*optind)++;
+	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
 	    if(rc != 1) 
 	    {
 		fprintf(stderr,
-			__FUNCTION__ ": bad constant %s \n",argv[argindex]);
+			__FUNCTION__ ": bad constant %s \n", 
+			argv[*optind]);
 		goto abort;
 	    }
-
+	    break;
 	}
-	break;
+
 	case Distn_Function_Exponent:
 	{
-	    int argindex=optind;
 	    /* one additional argument for a exponential generator the
-	       mean */
-	    distribution->function=expon;
-
-		if((argc - optind) < 2) {
-			fprintf(stderr,
-				__FUNCTION__ ": exponent requries one argument (mean)\n");
-	    	rv = -1;
-			goto abort;
-		}
-
-
-
-	    argindex++;
-	
-	    rc = sscanf(argv[argindex],"%lg",&distribution->mean);
-	    if(rc != 1) 
+	     * mean */
+	    if((argc - *optind) < 2) 
 	    {
 		fprintf(stderr,
-			__FUNCTION__ ": bad constant %s \n",argv[argindex]);
+			__FUNCTION__ ": exponent requries one argument (mean)\n");
+	    	rv = -1;
 		goto abort;
 	    }
 
+	    distribution->function = expon;
 
+	    (*optind)++;	
+	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
+	    if(rc != 1) 
+	    {
+		fprintf(stderr,
+			__FUNCTION__ ": bad constant %s \n",
+			argv[*optind]);
+		goto abort;
+	    }
+	    break;
 	}
-	break;
+
 	case Distn_Function_Pareto:
 	{
-	    int argindex=optind;
-	    /* two additional arguments for a pareto generator
-	       the mean and the shape */
-	    distribution->function=paretoon;
-
-		if((argc - optind) < 3) {
-			fprintf(stderr,
-				__FUNCTION__ ": pareto requries two arguments (mean and shape)\n");
+	    if((argc - *optind) < 3) 
+	    {
+		fprintf(stderr,
+			__FUNCTION__ 
+			": pareto requries two arguments (mean and shape)\n");
 	    	rv = -1;
-			goto abort;
-		}
+		goto abort;
+	    }
 
-	    argindex++;
-	    rc = sscanf(argv[argindex],"%lg",&distribution->mean);
+	    /* two additional arguments for a pareto generator the
+	     * mean and the shape */
+	    distribution->function = paretoon;
+
+	    (*optind)++;
+	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
 	    if(rc != 1) 
 	    {
 		fprintf(stderr,
-			__FUNCTION__ ": bad mean %s \n",argv[argindex]);
+			__FUNCTION__ ": bad mean %s \n",
+			argv[*optind]);
 		goto abort;
 	    }
-	    argindex++;
 
-	    rc = sscanf(argv[argindex],"%lg",&distribution->shape);
-	    if(rc != 1) {
+	    (*optind)++;
+	    rc = sscanf(argv[*optind], "%lg", &distribution->shape);
+	    if(rc != 1) 
+	    {
 		fprintf(stderr,
-			__FUNCTION__ ": bad shape %s \n",argv[argindex]);
+			__FUNCTION__ ": bad shape %s \n",
+			argv[*optind]);
 		goto abort;
 	    }
+	    break;
 	}
-	break;
+
 	default:
-	    fprintf(stderr,__FUNCTION__": unknown distribution type %s\n",
-		    argv[optind]);
+	    fprintf(stderr,
+		    __FUNCTION__": unknown distribution type %s\n",
+		    argv[*optind]);
 	    rv = -1;
     }
 
+    (*optind)++;
  abort:
     return rv;
 }
