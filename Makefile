@@ -44,14 +44,12 @@ OBJS = $(SRCS:.c=.o)
 all: pttcp 
 
 clean: 
-	$(RM) core *.o pttcp \#*\# *~ Dmakefile
-	touch Dmakefile
+	$(RM) core *.o pttcp \#*\# *~ 
 
 pttcp: $(OBJS)
 	$(CC) $(LDFLAGS) -o pttcp $(OBJS)
 
-depend::
-	[ -f Dmakefile ] || touch Dmakefile
-	makedepend -f Dmakefile -- $(CFLAGS) -- $(SRCS)
+depend:
+	makedepend -- $(CFLAGS) -- $(SRCS)
 
-include Dmakefile
+# DO NOT DELETE THIS LINE -- make depend depends on it.
