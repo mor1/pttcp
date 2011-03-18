@@ -64,3 +64,4 @@ double pareto(distn*);
 int    parse_distn(distn*, int*, char**, int);
 
 #endif /* _surge_clt_h_ */
+
