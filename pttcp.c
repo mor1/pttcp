@@ -421,7 +421,7 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
         }
 #endif
 
-        if(bind(fd, &state[fd].sinme, sizeof(state[fd].sinme)) < 0)
+        if(bind(fd, (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
         {
             perror("bind");
             return -1;
@@ -476,10 +476,10 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
     for(s=0; (rc>0) && (fd = FD_FFSandC(s, maxlfd, &fds_tmp1)); s = fd+1)
     {
         struct sockaddr_in frominet;
-        int fromlen;
-
+        socklen_t fromlen;
+        
         fromlen = sizeof(frominet);      
-        if((new_fd = accept(fd, &frominet, &fromlen)) < 0)
+        if((new_fd = accept(fd, (struct sockaddr *)&frominet, &fromlen)) < 0)
         {
             perror("accept");
             return -1;

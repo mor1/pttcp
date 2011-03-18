@@ -296,7 +296,7 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
     state[fd].open = 1;
 
     bzero((char *)&state[fd].sinme, sizeof(state[fd].sinme));
-    if(bind(fd, &state[fd].sinme, sizeof(state[fd].sinme)) < 0)
+    if(bind(fd, (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
     {
         perror("bind");
         return -1;
@@ -313,7 +313,7 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
     state[fd].sinhim.sin_port        = htons(d_port);
     state[fd].sinhim.sin_addr.s_addr = d_ipaddr;
 
-    if(connect(fd, &state[fd].sinhim, sizeof(state[fd].sinhim)) < 0)
+    if(connect(fd, (const struct sockaddr *)&state[fd].sinhim, sizeof(state[fd].sinhim)) < 0)
     {
         if(errno != EINPROGRESS)
         {

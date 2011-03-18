@@ -218,7 +218,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if((argc - *optind) < 2) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": constant requries one argument\n");
+                        "%s: constant requries one argument\n", __FUNCTION__);
                 rv = -1;
                 goto abort;
             }
@@ -232,8 +232,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if(rc != 1) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": bad constant %s \n", 
-                        argv[*optind]);
+                        "%s: bad constant %s \n", __FUNCTION__, argv[*optind]);
                 goto abort;
             }
             break;
@@ -246,7 +245,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if((argc - *optind) < 2) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": exponent requries one argument (mean)\n");
+                        "%s: exponent requries one argument (mean)\n", __FUNCTION__);
                 rv = -1;
                 goto abort;
             }
@@ -258,8 +257,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if(rc != 1) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": bad constant %s \n",
-                        argv[*optind]);
+                        "%s: bad constant %s \n", __FUNCTION__, argv[*optind]);
                 goto abort;
             }
             break;
@@ -269,9 +267,8 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
         {
             if((argc - *optind) < 3) 
             {
-                fprintf(stderr,
-                        __FUNCTION__ 
-                        ": pareto requries two arguments (mean and shape)\n");
+                fprintf(stderr,                        
+                        "%s: pareto requries two arguments (mean and shape)\n", __FUNCTION__);
                 rv = -1;
                 goto abort;
             }
@@ -285,8 +282,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if(rc != 1) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": bad mean %s \n",
-                        argv[*optind]);
+                        "%s: bad mean %s \n", __FUNCTION__, argv[*optind]);
                 goto abort;
             }
 
@@ -295,8 +291,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if(rc != 1) 
             {
                 fprintf(stderr,
-                        __FUNCTION__ ": bad shape %s \n",
-                        argv[*optind]);
+                        "%s: bad shape %s \n", __FUNCTION__, argv[*optind]);
                 goto abort;
             }
             break;
@@ -304,8 +299,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
         default:
             fprintf(stderr,
-                    __FUNCTION__": unknown distribution type %s\n",
-                    argv[*optind]);
+                    "%s: unknown distribution type %s\n", __FUNCTION__, argv[*optind]);
             rv = -1;
     }
 
