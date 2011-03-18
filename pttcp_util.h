@@ -43,8 +43,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-#define ffs_long     ffs /* this will only work on 32 bit machines! */
-
 void          fatal(char *, ...);
 void          warning(char *, ...);
 int           getint(char*);

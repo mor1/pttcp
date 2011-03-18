@@ -48,7 +48,6 @@
 #include <unistd.h>
 #include <string.h>
 
-
 #include "trc.h"
 #include "pttcp.h"
 #include "pttcp_util.h"
@@ -211,13 +210,17 @@ FD_POP(int maxfd, fd_set *fd)
 {
     int i, j=0;
 
-    for(i=0; i <= maxfd / __NFDBITS; i++)
+    for(i=0; i <= maxfd / NFDBITS; i++)
     {
-        __fd_mask x = fd->__fds_bits[i];
+#ifdef __linux__
+        fd_mask x = fd->__fds_bits[i];
+#else
+        fd_mask x = fd->fds_bits[i];
+#endif
 
-        if(i == maxfd / __NFDBITS)
+        if(i == maxfd / NFDBITS)
         {
-            x &= ~((-2L) << (maxfd % __NFDBITS));
+            x &= ~((-2L) << (maxfd % NFDBITS));
         }
         j += pop_count(x);
     }
@@ -230,20 +233,24 @@ FD_FFS(int start, int maxfd, fd_set *fd)
 {
     int i,j;
 
-    for(i = start / __NFDBITS; i <= maxfd / __NFDBITS; i++)
+    for(i = start / NFDBITS; i <= maxfd / NFDBITS; i++)
     {
-        __fd_mask x = fd->__fds_bits[i];
+#ifdef __linux__
+        fd_mask x = fd->__fds_bits[i];
+#else
+        fd_mask x = fd->fds_bits[i];
+#endif
 
-        if(start % __NFDBITS)
+        if(start % NFDBITS)
         {
-            x = x & (~((u_int32_t)0)) <<  (start % __NFDBITS);
+            x = x & (~((u_int32_t)0)) <<  (start % NFDBITS);
             start = 0;
         }	    
 
         if(x == 0) 
             continue;  /* nothing set here */
 
-        j = ffs_long((u_int32_t)x) - 1 + i*__NFDBITS;
+        j = ffs((u_int32_t)x) - 1 + i*NFDBITS;
 
         if(j > maxfd) 
             return 0;
@@ -260,14 +267,19 @@ FD_FFSandC(int start, int maxfd, fd_set * fd)
 {
     int i,j;
 
-    for(i = start / __NFDBITS; i <= maxfd / __NFDBITS; i++)
+    for(i = start / NFDBITS; i <= maxfd / NFDBITS; i++)
     {
-        __fd_mask x = fd->__fds_bits[i];
+#ifdef __linux__
+        fd_mask x = fd->__fds_bits[i];
+#else
+        fd_mask x = fd->fds_bits[i];
+#endif
+                                    
 
         if(x == 0)
             continue;  /* nothing set here */
 
-        j = ffs_long((u_int32_t) x) - 1 + i*__NFDBITS;
+        j = ffs((u_int32_t) x) - 1 + i*NFDBITS;
 
         if(j > maxfd) 
             return 0;
