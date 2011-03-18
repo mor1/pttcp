@@ -86,15 +86,15 @@ typedef enum {
 void surge_client(int n, char *host, int num_ports, int base_rx_port);
 
 void continuous_client(int n, int bytes, char *host, int num_ports, int
-base_rx_port);
+                       base_rx_port);
 
 void simple_tx(int n, int bytes, char *host, int num_ports, int
-base_rx_port);
+               base_rx_port);
 
 void simple_rx(int num_ports, int base_rx_port);
 
 void simple_client(int n, int bytes, char *host, int num_ports, int
-base_rx_port);
+                   base_rx_port);
 
 void simple_server(int num_ports, int base_rx_port);
 
@@ -106,10 +106,4 @@ int create_listeners(fd_set *fds_listeners, int num_ports,
 int accept_incoming(int maxlfd, fd_set *fds_listeners, 
                     fd_set *fds_active);
 
-
-
-
-
-
 #endif /* _pttcp_h_ */
-

@@ -179,8 +179,8 @@ constant(distn *d)
 double
 expon(distn *d)
 {
-    double r=(double) drand48();
-    double val= -log(r) * d->mean;
+    double r = (double) drand48();
+    double val = -log(r) * d->mean;
     return (val);
 }
 
@@ -209,108 +209,108 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
     for(theType=0; theType < Distn_Function_nTypes; theType++) 
     {
         if(!strncmp(argv[*optind], Distn_Function_Type[theType], 255)) 
-	    break;
+            break;
     }
     switch(theType) 
     {
-	case Distn_Function_Constant:
-	{
-	    if((argc - *optind) < 2) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": constant requries one argument\n");
-	    	rv = -1;
-		goto abort;
-	    }
+        case Distn_Function_Constant:
+        {
+            if((argc - *optind) < 2) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": constant requries one argument\n");
+                rv = -1;
+                goto abort;
+            }
 
-	    /* one additional argument for a constant generator, the
-	     * constant itself (or `mean') */
-	    distribution->function = constant;
+            /* one additional argument for a constant generator, the
+             * constant itself (or `mean') */
+            distribution->function = constant;
 
-	    (*optind)++;
-	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-	    if(rc != 1) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": bad constant %s \n", 
-			argv[*optind]);
-		goto abort;
-	    }
-	    break;
-	}
+            (*optind)++;
+            rc = sscanf(argv[*optind], "%lg", &distribution->mean);
+            if(rc != 1) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": bad constant %s \n", 
+                        argv[*optind]);
+                goto abort;
+            }
+            break;
+        }
 
-	case Distn_Function_Exponent:
-	{
-	    /* one additional argument for a exponential generator the
-	     * mean */
-	    if((argc - *optind) < 2) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": exponent requries one argument (mean)\n");
-	    	rv = -1;
-		goto abort;
-	    }
+        case Distn_Function_Exponent:
+        {
+            /* one additional argument for a exponential generator the
+             * mean */
+            if((argc - *optind) < 2) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": exponent requries one argument (mean)\n");
+                rv = -1;
+                goto abort;
+            }
 
-	    distribution->function = expon;
+            distribution->function = expon;
 
-	    (*optind)++;	
-	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-	    if(rc != 1) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": bad constant %s \n",
-			argv[*optind]);
-		goto abort;
-	    }
-	    break;
-	}
+            (*optind)++;	
+            rc = sscanf(argv[*optind], "%lg", &distribution->mean);
+            if(rc != 1) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": bad constant %s \n",
+                        argv[*optind]);
+                goto abort;
+            }
+            break;
+        }
 
-	case Distn_Function_Pareto:
-	{
-	    if((argc - *optind) < 3) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ 
-			": pareto requries two arguments (mean and shape)\n");
-	    	rv = -1;
-		goto abort;
-	    }
+        case Distn_Function_Pareto:
+        {
+            if((argc - *optind) < 3) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ 
+                        ": pareto requries two arguments (mean and shape)\n");
+                rv = -1;
+                goto abort;
+            }
 
-	    /* two additional arguments for a pareto generator the
-	     * mean and the shape */
-	    distribution->function = paretoon;
+            /* two additional arguments for a pareto generator the
+             * mean and the shape */
+            distribution->function = paretoon;
 
-	    (*optind)++;
-	    rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-	    if(rc != 1) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": bad mean %s \n",
-			argv[*optind]);
-		goto abort;
-	    }
+            (*optind)++;
+            rc = sscanf(argv[*optind], "%lg", &distribution->mean);
+            if(rc != 1) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": bad mean %s \n",
+                        argv[*optind]);
+                goto abort;
+            }
 
-	    (*optind)++;
-	    rc = sscanf(argv[*optind], "%lg", &distribution->shape);
-	    if(rc != 1) 
-	    {
-		fprintf(stderr,
-			__FUNCTION__ ": bad shape %s \n",
-			argv[*optind]);
-		goto abort;
-	    }
-	    break;
-	}
+            (*optind)++;
+            rc = sscanf(argv[*optind], "%lg", &distribution->shape);
+            if(rc != 1) 
+            {
+                fprintf(stderr,
+                        __FUNCTION__ ": bad shape %s \n",
+                        argv[*optind]);
+                goto abort;
+            }
+            break;
+        }
 
-	default:
-	    fprintf(stderr,
-		    __FUNCTION__": unknown distribution type %s\n",
-		    argv[*optind]);
-	    rv = -1;
+        default:
+            fprintf(stderr,
+                    __FUNCTION__": unknown distribution type %s\n",
+                    argv[*optind]);
+            rv = -1;
     }
 
     (*optind)++;
- abort:
+abort:
     return rv;
 }
 
@@ -343,183 +343,183 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
     /* create all the TCP connections */
     for(i=0; i<n; i++)
     {
-	int fd;
-	struct timeval tp={ 0, 0 };
+        int fd;
+        struct timeval tp={ 0, 0 };
 
-	fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
+        fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
 
-	if(fd < 0)
-	{
-	    fprintf(stderr,"Unable to open connection!\n");
-	    exit(-1);
-	}
+        if(fd < 0)
+        {
+            fprintf(stderr,"Unable to open connection!\n");
+            exit(-1);
+        }
 
-	if(fd > maxfd) 
-	    maxfd = fd;
+        if(fd > maxfd) 
+            maxfd = fd;
 
 
-	state[fd].client_id=fd;
+        state[fd].client_id=fd;
 
-	state[fd].object_count=objperpage_distn();
+        state[fd].object_count=objperpage_distn();
 
-	state[fd].tx_target = objsize_distn();
-	state[fd].tx_sent   = 0;
-	state[fd].tx_pkts   = 0;
-	state[fd].rx_rcvd   = 0;
-	FD_SET(fd, &fds_new);
+        state[fd].tx_target = objsize_distn();
+        state[fd].tx_sent   = 0;
+        state[fd].tx_pkts   = 0;
+        state[fd].rx_rcvd   = 0;
+        FD_SET(fd, &fds_new);
 
-	tp.tv_usec = (int)(drand48()*10000.0);
+        tp.tv_usec = (int)(drand48()*10000.0);
 
-	select(0, &fds_zero, &fds_zero, &fds_zero, &tp);
+        select(0, &fds_zero, &fds_zero, &fds_zero, &tp);
     }
 
     /* start sending */
     while(1)
     {
-	int s, fd, client_id, sink_data_rc, want_to_run_rc=0;
-	struct timeval tdiff;
+        int s, fd, client_id, sink_data_rc, want_to_run_rc=0;
+        struct timeval tdiff;
 
-	send_request(&fds_new, &fds_active);
-	sink_data_rc = sink_data(&fds_active, &fds_finished);
+        send_request(&fds_new, &fds_active);
+        sink_data_rc = sink_data(&fds_active, &fds_finished);
 
-	/* close those that have finished */
-	for(s=0; 
-	    (sink_data_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
-	    s = fd+1)
-	{
-	    double mbs;
+        /* close those that have finished */
+        for(s=0; 
+            (sink_data_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
+            s = fd+1)
+        {
+            double mbs;
 
-	    tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
+            tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
 	  
-	    mbs = (double)(8.0*state[fd].rx_rcvd) /
-		(double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
+            mbs = (double)(8.0*state[fd].rx_rcvd) /
+                (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
-	    tmbs += mbs;
+            tmbs += mbs;
 
-	    gettimeofday(&current_time,NULL);
+            gettimeofday(&current_time,NULL);
 
-	    if(verbose)
-		fprintf(stderr,
-			"%d.%06d Finished with %d after %d bytes. "
-			"%ld.%03lds = %.4f Mb/s.\n", 
-			(int)current_time.tv_sec,(int)current_time.tv_usec,
-			fd, state[fd].rx_rcvd, 
-			(long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
-			mbs/scalar);
+            if(verbose)
+                fprintf(stderr,
+                        "%d.%06d Finished with %d after %d bytes. "
+                        "%ld.%03lds = %.4f Mb/s.\n", 
+                        (int)current_time.tv_sec,(int)current_time.tv_usec,
+                        fd, state[fd].rx_rcvd, 
+                        (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                        mbs/scalar);
 
-	    close(fd);
-	    state[fd].open = 0;
+            close(fd);
+            state[fd].open = 0;
 
 
-	    /* control loop for time keeping:
-	     *
-	     * this should embody the idea that if the object count
-	     * is >1 insert an interobj sleep; if the object count is
-	     * <1 recalc the object count and this sleep is an
-	     * interpage sleep.
-	     */
+            /* control loop for time keeping:
+             *
+             * this should embody the idea that if the object count
+             * is >1 insert an interobj sleep; if the object count is
+             * <1 recalc the object count and this sleep is an
+             * interpage sleep.
+             */
 
-	    state[fd].object_count--;
+            state[fd].object_count--;
 
-	    if(state[fd].object_count > 0) {
+            if(state[fd].object_count > 0) {
 		
-		time_us = interobj_distn();
-	    }else{
-		time_us = interpage_distn();
-		state[fd].object_count=objperpage_distn();
-	    }
+                time_us = interobj_distn();
+            }else{
+                time_us = interpage_distn();
+                state[fd].object_count=objperpage_distn();
+            }
 
 
-	    time_us *= scalar;
-	    next_start_time.tv_sec = (int) time_us;
-	    next_start_time.tv_usec = (int) 
-		((time_us - (double)next_start_time.tv_sec) 
-		 * 1e6 );
-	    tvadd(&state[state[fd].client_id].next_start_time,&state[fd].rx_stop,
-		  &next_start_time);
+            time_us *= scalar;
+            next_start_time.tv_sec = (int) time_us;
+            next_start_time.tv_usec = (int) 
+                ((time_us - (double)next_start_time.tv_sec) 
+                 * 1e6 );
+            tvadd(&state[state[fd].client_id].next_start_time,&state[fd].rx_stop,
+                  &next_start_time);
 
-	    if(verbose)
-		printf("(%d): time_us %d.%06d opp %d\n",__LINE__,
-		       (int)next_start_time.tv_sec,
-		       (int)next_start_time.tv_usec,
-		       state[fd].object_count);
-	    FD_CLR(fd, &fds_finished);
-	    FD_SET(state[fd].client_id, &ids_sleeping);
-	}
+            if(verbose)
+                printf("(%d): time_us %d.%06d opp %d\n",__LINE__,
+                       (int)next_start_time.tv_sec,
+                       (int)next_start_time.tv_usec,
+                       state[fd].object_count);
+            FD_CLR(fd, &fds_finished);
+            FD_SET(state[fd].client_id, &ids_sleeping);
+        }
 
 
 
-	for(s=0;(client_id = FD_FFS(s, maxfd, &ids_sleeping));
-	    s = client_id+1)
-	{
+        for(s=0;(client_id = FD_FFS(s, maxfd, &ids_sleeping));
+            s = client_id+1)
+        {
 	
-	    gettimeofday(&current_time,NULL);
+            gettimeofday(&current_time,NULL);
 
-	    if(tveqless(&state[client_id].next_start_time,&current_time)) {
-		if(state[client_id].object_count > 0) {
-		    FD_CLR(client_id, &ids_sleeping);
-		    FD_SET(client_id, &ids_want_to_run);
-		    want_to_run_rc++;
-		}else{
+            if(tveqless(&state[client_id].next_start_time,&current_time)) {
+                if(state[client_id].object_count > 0) {
+                    FD_CLR(client_id, &ids_sleeping);
+                    FD_SET(client_id, &ids_want_to_run);
+                    want_to_run_rc++;
+                }else{
 
-		    /* this exception handles the empty page in which
-		       case if the time expires we just wait another
-		       interpage and calculate another value for the
-		       objperpage */
+                    /* this exception handles the empty page in which
+                       case if the time expires we just wait another
+                       interpage and calculate another value for the
+                       objperpage */
 
-		    time_us = interpage_distn();
-		    state[fd].object_count=objperpage_distn();
-		    time_us *= scalar;
-		    next_start_time.tv_sec = (int) time_us;
-		    next_start_time.tv_usec = (int) 
-			((time_us - (double)next_start_time.tv_sec) 
-			 * 1e6 );
-		    tvadd(&state[state[fd].client_id].next_start_time,
-			  &state[fd].rx_stop,
-			  &next_start_time);
-		}
-	    }
-	}
+                    time_us = interpage_distn();
+                    state[fd].object_count=objperpage_distn();
+                    time_us *= scalar;
+                    next_start_time.tv_sec = (int) time_us;
+                    next_start_time.tv_usec = (int) 
+                        ((time_us - (double)next_start_time.tv_sec) 
+                         * 1e6 );
+                    tvadd(&state[state[fd].client_id].next_start_time,
+                          &state[fd].rx_stop,
+                          &next_start_time);
+                }
+            }
+        }
 
-	if(verbose && want_to_run_rc>0) {
-	    fprintf(stdout,"%d.%06d %d %d %d %d %d (%d)\n", 
-		    (int)current_time.tv_sec,(int)current_time.tv_usec,
-		    FD_POP(maxfd,&fds_new),
-		    FD_POP(maxfd,&fds_active),
-		    FD_POP(maxfd,&fds_finished),
-		    FD_POP(maxfd,&ids_sleeping),
-		    FD_POP(maxfd,&ids_want_to_run),
-		    (FD_POP(maxfd,&fds_new)+
-		     FD_POP(maxfd,&fds_active)+
-		     FD_POP(maxfd,&fds_finished)+
-		     FD_POP(maxfd,&ids_sleeping)+
-		     FD_POP(maxfd,&ids_want_to_run)));
-	}
+        if(verbose && want_to_run_rc>0) {
+            fprintf(stdout,"%d.%06d %d %d %d %d %d (%d)\n", 
+                    (int)current_time.tv_sec,(int)current_time.tv_usec,
+                    FD_POP(maxfd,&fds_new),
+                    FD_POP(maxfd,&fds_active),
+                    FD_POP(maxfd,&fds_finished),
+                    FD_POP(maxfd,&ids_sleeping),
+                    FD_POP(maxfd,&ids_want_to_run),
+                    (FD_POP(maxfd,&fds_new)+
+                     FD_POP(maxfd,&fds_active)+
+                     FD_POP(maxfd,&fds_finished)+
+                     FD_POP(maxfd,&ids_sleeping)+
+                     FD_POP(maxfd,&ids_want_to_run)));
+        }
 
-	for(s=0; 
-	    ((want_to_run_rc>0) && 
-	     (client_id = FD_FFSandC(s, maxfd, &ids_want_to_run)));
-	    s = client_id+1)
-	{
-	    int new_fd;
+        for(s=0; 
+            ((want_to_run_rc>0) && 
+             (client_id = FD_FFSandC(s, maxfd, &ids_want_to_run)));
+            s = client_id+1)
+        {
+            int new_fd;
 
-	    /* use fd to dsitribute it over the listener pool */
-	    new_fd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
-	    state[new_fd].client_id=client_id;
+            /* use fd to dsitribute it over the listener pool */
+            new_fd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
+            state[new_fd].client_id=client_id;
 
-	    if(new_fd < 0)
-	    {
-		fprintf(stderr,"Unable to open connection!\n");
-		continue;
-	    }
+            if(new_fd < 0)
+            {
+                fprintf(stderr,"Unable to open connection!\n");
+                continue;
+            }
 	    
-	    if(new_fd > maxfd) 
-		maxfd = new_fd;
+            if(new_fd > maxfd) 
+                maxfd = new_fd;
 
-	    state[new_fd].tx_target = objsize_distn();
-	    state[new_fd].rx_rcvd = 0;
-	    FD_SET(new_fd, &fds_new);
-	}
+            state[new_fd].tx_target = objsize_distn();
+            state[new_fd].rx_rcvd = 0;
+            FD_SET(new_fd, &fds_new);
+        }
     }
 }
 

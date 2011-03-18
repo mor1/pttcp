@@ -34,7 +34,7 @@ CC      = gcc
 CFLAGS  = -Wall
 LDFLAGS	= -lm
 
-SRCS    = pttcp.c pttcp_util.c			\
+SRCS    = pttcp.c pttcp_util.c		\
 	simple_tx.c simple_rx.c			\
 	simple_svr.c simple_clt.c		\
 	cts_clt.c surge_clt.c
@@ -51,8 +51,7 @@ pttcp: $(OBJS)
 	$(CC) $(LDFLAGS) -o pttcp $(OBJS)
 
 depend::
-	@[ -f Dmakefile ] || touch Dmakefile
+	[ -f Dmakefile ] || touch Dmakefile
 	makedepend -f Dmakefile -- $(CFLAGS) -- $(SRCS)
 
 include Dmakefile
-

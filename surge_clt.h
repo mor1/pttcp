@@ -61,7 +61,6 @@ double constant(distn*);
 double expon(distn*);
 double pareto(distn*);
 
-int    parse_distn(distn*, int*, char**, int);
+int parse_distn(distn*, int*, char**, int);
 
 #endif /* _surge_clt_h_ */
-

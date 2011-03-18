@@ -76,66 +76,65 @@ simple_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
     /* create all the TCP conenctions */
     for(i=0; i<n; i++)
     {
-	int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
-	if(fd < 0)
-	{
-	    printf("Unable to open connection!\n");
-	    exit(-1);
-	}
+        int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
+        if(fd < 0)
+        {
+            printf("Unable to open connection!\n");
+            exit(-1);
+        }
 
-	if(fd > maxfd) 
-	{
-	    maxfd = fd;
-	}
+        if(fd > maxfd) 
+        {
+            maxfd = fd;
+        }
 
-	state[fd].tx_target = bytes;
-	state[fd].tx_sent   = 0;
-	state[fd].tx_pkts   = 0;
-	FD_SET(fd, &fds_new);
+        state[fd].tx_target = bytes;
+        state[fd].tx_sent   = 0;
+        state[fd].tx_pkts   = 0;
+        FD_SET(fd, &fds_new);
     }
 
     /* start sending */
     left = -1;
     while(left)
     {
-	int s, fd, rc;
-	struct timeval tdiff;
+        int s, fd, rc;
+        struct timeval tdiff;
 
-	send_request(&fds_new, &fds_active);
-	rc = sink_data(&fds_active, &fds_finished);
+        send_request(&fds_new, &fds_active);
+        rc = sink_data(&fds_active, &fds_finished);
 
-	/* close those that have finished */
-	for(s=0; 
-	    (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished)); 
-	    s = fd+1)
-	{
-	    double mbs;
+        /* close those that have finished */
+        for(s=0; 
+            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished)); 
+            s = fd+1)
+        {
+            double mbs;
 
-	    left = FD_POP(maxfd, &fds_active);
+            left = FD_POP(maxfd, &fds_active);
 
-	    /* rx_start/stop: when the CLIENT starts/stops receiving */
-	    tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
+            /* rx_start/stop: when the CLIENT starts/stops receiving */
+            tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
 	  
-	    mbs = (double)(8.0*state[fd].rx_rcvd) / 
-		(double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
+            mbs = (double)(8.0*state[fd].rx_rcvd) / 
+                (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
-	    tmbs += mbs;
+            tmbs += mbs;
 
-	    fprintf(stderr, 
-		    "Finished with %d after %d bytes (%d pkts). "
-		    "%ld.%03lds = %.4f Mb/s. "
-		    "%d active\n", 
-		    fd, state[fd].rx_rcvd, state[fd].rx_pkts,
-		    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
-		    mbs/scalar, left);
+            fprintf(stderr, 
+                    "Finished with %d after %d bytes (%d pkts). "
+                    "%ld.%03lds = %.4f Mb/s. "
+                    "%d active\n", 
+                    fd, state[fd].rx_rcvd, state[fd].rx_pkts,
+                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                    mbs/scalar, left);
 
-	    close(fd);
-	    state[fd].open=0;
-	    FD_CLR(fd, &fds_finished);
-	} 
+            close(fd);
+            state[fd].open=0;
+            FD_CLR(fd, &fds_finished);
+        } 
     }
     fprintf(stderr, 
-	    "Rough total b/w estimate was %.2f Mb/s, "
-	    "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
+            "Rough total b/w estimate was %.2f Mb/s, "
+            "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
 }
-

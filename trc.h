@@ -46,27 +46,26 @@
 # define dprintf printf
 #endif
 
-#define ERROR(fmt,args...) dprintf("*** [%s:%i]:%s: " ## fmt,		\
-				   __FILE__, __LINE__,			\
-				   __PRETTY_FUNCTION__ , ## args)
+#define ERROR(fmt,args...) \
+    dprintf("*** [%s:%i]:%s: " ## fmt, \
+            __FILE__, __LINE__, __PRETTY_FUNCTION__ , ## args)
 
 #ifdef _ENTER_EXIT_
-# define ENTER   dprintf("[%s:%i]: +++ %s\n",				\
-			 __FILE__, __LINE__, __PRETTY_FUNCTION__)
-# define LEAVE   dprintf("[%s:%i]: --- %s\n",				\
-			 __FILE__, __LINE__, __PRETTY_FUNCTION__)
-# define RETURN  LEAVE; return
+# define ENTER dprintf("[%s:%i]: +++ %s\n", \
+                       __FILE__, __LINE__, __PRETTY_FUNCTION__)
+# define LEAVE dprintf("[%s:%i]: --- %s\n", \
+                       __FILE__, __LINE__, __PRETTY_FUNCTION__)
+# define RETURN LEAVE; return
 #else
 # define ENTER
 # define LEAVE
-# define RETURN  return
+# define RETURN return
 #endif // _ENTER_EXIT_
 
 #ifdef _TRACE_
-# define TRC(fmt,args...) dprintf("### [%s:%i]:%s: " ## fmt,		\
-				  __FILE__, __LINE__,			\
-				  __PRETTY_FUNCTION__ , ## args)
+# define TRC(fmt,args...)              \
+    dprintf("### [%s:%i]:%s: " ## fmt, \
+            __FILE__, __LINE__, __PRETTY_FUNCTION__ , ## args)
 #else
 # define TRC(fmt,args...)
 #endif // _TRACE_
-

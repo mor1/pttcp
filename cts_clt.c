@@ -78,83 +78,82 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
     /* create all the TCP connections */
     for(i=0; i<n; i++)
     {
-	int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
-	struct timeval tp={ 0, 0 };
+        int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
+        struct timeval tp={ 0, 0 };
 
-	if(fd < 0)
-	{
-	    printf("Unable to open connection!\n");
-	    exit(-1);
-	}
-	if(fd > maxfd) 
-	{
-	    maxfd = fd;
-	}
+        if(fd < 0)
+        {
+            printf("Unable to open connection!\n");
+            exit(-1);
+        }
+        if(fd > maxfd) 
+        {
+            maxfd = fd;
+        }
 
-	state[fd].tx_target = bytes;
-	state[fd].tx_sent   = 0;
-	state[fd].tx_pkts   = 0;
-	state[fd].rx_rcvd   = 0;
-	FD_SET(fd, &fds_new);
+        state[fd].tx_target = bytes;
+        state[fd].tx_sent   = 0;
+        state[fd].tx_pkts   = 0;
+        state[fd].rx_rcvd   = 0;
+        FD_SET(fd, &fds_new);
 
-	tp.tv_usec = rand()%10000;
+        tp.tv_usec = rand()%10000;
 
-	select(0, &fds_zero, &fds_zero, &fds_zero, &tp);
+        select(0, &fds_zero, &fds_zero, &fds_zero, &tp);
     }
 
     /* start sending */
     while(1)
     {
-	int s, fd, rc;
-	struct timeval tdiff;
+        int s, fd, rc;
+        struct timeval tdiff;
 
-	send_request(&fds_new, &fds_active);
-	rc = sink_data(&fds_active, &fds_finished);
+        send_request(&fds_new, &fds_active);
+        rc = sink_data(&fds_active, &fds_finished);
 
-	/* close those that have finished */
-	for(s=0; 
-	    (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
-	    s = fd+1)
-	{
-	    double mbs;
-	    int new_fd;
+        /* close those that have finished */
+        for(s=0; 
+            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
+            s = fd+1)
+        {
+            double mbs;
+            int new_fd;
 
-	    tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
+            tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
 	  
-	    mbs = (double)(8.0*state[fd].rx_rcvd) /
-		(double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
+            mbs = (double)(8.0*state[fd].rx_rcvd) /
+                (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
-	    tmbs += mbs;
+            tmbs += mbs;
 
-	    fprintf(stderr, 
-		    "Finished with %d after %d bytes. %ld.%03lds = %.4f "
-		    "Mb/s.\n", 
-		    fd, state[fd].rx_rcvd, 
-		    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
-		    mbs/scalar);
+            fprintf(stderr, 
+                    "Finished with %d after %d bytes. %ld.%03lds = %.4f "
+                    "Mb/s.\n", 
+                    fd, state[fd].rx_rcvd, 
+                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                    mbs/scalar);
 
-	    close(fd);
-	    state[fd].open = 0;
+            close(fd);
+            state[fd].open = 0;
 
-	    FD_CLR(fd, &fds_finished);
+            FD_CLR(fd, &fds_finished);
 
-	    /* use fd to dsitribute it over the listener pool */
-	    new_fd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
+            /* use fd to dsitribute it over the listener pool */
+            new_fd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
 
-	    if(new_fd < 0)
-	    {
-		fprintf(stderr, "Unable to open connection!\n");
-		continue;
-	    }
+            if(new_fd < 0)
+            {
+                fprintf(stderr, "Unable to open connection!\n");
+                continue;
+            }
 	  
-	    if(new_fd > maxfd) 
-	    {
-		maxfd = new_fd;
-	    }
+            if(new_fd > maxfd) 
+            {
+                maxfd = new_fd;
+            }
 	  
-	    state[new_fd].rx_rcvd = 0;
-	    FD_SET(new_fd, &fds_new);
-	} 
+            state[new_fd].rx_rcvd = 0;
+            FD_SET(new_fd, &fds_new);
+        } 
     }
 }
-

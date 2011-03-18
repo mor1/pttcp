@@ -78,96 +78,95 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
     /* create all the TCP conenctions */
     for(i=0; i<n; i++)
     {
-	int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
-	if(fd < 0)
-	{
-	    fprintf(stderr, "Unable to open connection!\n");
-	}
-	if(fd > maxfd) 
-	{
-	    maxfd = fd;
-	}
-	state[fd].tx_target = bytes;
-	state[fd].tx_sent   = 0;
-	state[fd].tx_pkts   = 0;
-	gettimeofday(&state[fd].tx_start, (struct timezone *)0);
-	FD_SET(fd, &fds_active);
+        int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
+        if(fd < 0)
+        {
+            fprintf(stderr, "Unable to open connection!\n");
+        }
+        if(fd > maxfd) 
+        {
+            maxfd = fd;
+        }
+        state[fd].tx_target = bytes;
+        state[fd].tx_sent   = 0;
+        state[fd].tx_pkts   = 0;
+        gettimeofday(&state[fd].tx_start, (struct timezone *)0);
+        FD_SET(fd, &fds_active);
     }
 
     /* start sending */
     left = -1;
     while(left)
     {
-	int s, fd, fin;
-	struct timeval tdiff;
+        int s, fd, fin;
+        struct timeval tdiff;
 	
-	fin = send_data(&fds_active, &fds_finished);
-	if(fin)
-	{
-	    fprintf(stderr, "%d finished\n", fin);
-	}
+        fin = send_data(&fds_active, &fds_finished);
+        if(fin)
+        {
+            fprintf(stderr, "%d finished\n", fin);
+        }
 
-	for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_finished)); s = fd+1)
-	{
-	    double mbs = 0;
+        for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_finished)); s = fd+1)
+        {
+            double mbs = 0;
 
-	    if(state[fd].tx_sent != state[fd].tx_target)
-	    {
+            if(state[fd].tx_sent != state[fd].tx_target)
+            {
                 /* we got closed before completing so try and set up
-		 * again */
-		int newfd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
-		if(newfd < 0)
-		{
-		    fprintf(stderr, "Unable to open connection!\n");
-		}
+                 * again */
+                int newfd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
+                if(newfd < 0)
+                {
+                    fprintf(stderr, "Unable to open connection!\n");
+                }
 
-		fprintf(stderr, 
-			"Connection %d was aborted, so restart using fd %d\n",
-			fd, newfd);
+                fprintf(stderr, 
+                        "Connection %d was aborted, so restart using fd %d\n",
+                        fd, newfd);
 
-		if(newfd > maxfd) 
-		{
-		    maxfd = newfd;
-		}
+                if(newfd > maxfd) 
+                {
+                    maxfd = newfd;
+                }
 		
-		state[newfd].tx_target = bytes;
-		state[newfd].tx_sent   = 0;
-		state[newfd].tx_pkts   = 0;
-		gettimeofday(&state[fd].tx_start, (struct timezone *)0);
+                state[newfd].tx_target = bytes;
+                state[newfd].tx_sent   = 0;
+                state[newfd].tx_pkts   = 0;
+                gettimeofday(&state[fd].tx_start, (struct timezone *)0);
 
-		FD_SET(newfd, &fds_active);
-		continue;
-	    }
+                FD_SET(newfd, &fds_active);
+                continue;
+            }
 	    
-	    /* if we get here, connection must have completed its
-	     * mission OK */
-	    left = FD_POP(maxfd, &fds_active);
-	    tvsub(&tdiff, &state[fd].tx_stop, &state[fd].tx_start);
+            /* if we get here, connection must have completed its
+             * mission OK */
+            left = FD_POP(maxfd, &fds_active);
+            tvsub(&tdiff, &state[fd].tx_stop, &state[fd].tx_start);
 	  
-	    fprintf(stderr, 
-		    "Finished with %d after %d bytes. ",
-		    fd, state[fd].tx_sent);
+            fprintf(stderr, 
+                    "Finished with %d after %d bytes. ",
+                    fd, state[fd].tx_sent);
 
-	    if((tdiff.tv_sec == 0) && (tdiff.tv_usec == 0))
-	    {
-		mbs = 0;
-	    }
-	    else
-	    {
-		mbs = (double)(8.0*state[fd].tx_sent) / 
-		    (double)(tdiff.tv_sec*1e6 + tdiff.tv_usec); 
-		fprintf(stderr, 
-			"%ld.%03lds => %.4f Mb/s. %d still active\n", 
-		       (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
-		       mbs/scalar, left);
-	    }
-	    tmbs += mbs;
-	    FD_CLR(fd, &fds_finished);
-	}
+            if((tdiff.tv_sec == 0) && (tdiff.tv_usec == 0))
+            {
+                mbs = 0;
+            }
+            else
+            {
+                mbs = (double)(8.0*state[fd].tx_sent) / 
+                    (double)(tdiff.tv_sec*1e6 + tdiff.tv_usec); 
+                fprintf(stderr, 
+                        "%ld.%03lds => %.4f Mb/s. %d still active\n", 
+                        (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
+                        mbs/scalar, left);
+            }
+            tmbs += mbs;
+            FD_CLR(fd, &fds_finished);
+        }
 
     }
     fprintf(stderr, 
-	    "Total b/w estimate was %.2f Mb/s, "
-	    "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
+            "Total b/w estimate was %.2f Mb/s, "
+            "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
 }
-

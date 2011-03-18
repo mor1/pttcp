@@ -75,7 +75,7 @@ fatal(char *format, ...)
     vfprintf(stderr, format, ap);
     if(*format && format[strlen(format) - 1] != '\n')
     {
-	fprintf(stderr, "\n");
+        fprintf(stderr, "\n");
     }
     fflush(stderr);
     va_end(ap);
@@ -93,7 +93,7 @@ warning(char *format, ...)
     vfprintf(stderr, format, ap);
     if(*format && format[strlen(format) - 1] != '\n')
     {
-	fprintf(stderr, "\n");
+        fprintf(stderr, "\n");
     }
     fflush(stderr);
     va_end(ap);
@@ -111,7 +111,7 @@ getint(char *str)
     l = strtol(str, &str2, 10);
     if(str == str2)
     {
-	fatal("%s: not an integer", str);
+        fatal("%s: not an integer", str);
     }
     return (int)l;
 }
@@ -125,8 +125,8 @@ getdouble(char *str)
     d = strtod(str, &str2);
     if(str == str2)
     {
-	fprintf(stderr, "%s: not a double", str);
-	exit(-1);
+        fprintf(stderr, "%s: not a double", str);
+        exit(-1);
     }
     return (double) d;
 }
@@ -145,8 +145,8 @@ host2ipaddr(const char* str)
 
     if(!(host = gethostbyname(str)))
     {
-	herror(prog_name);
-	exit(1);
+        herror(prog_name);
+        exit(1);
     }
     inaddr.s_addr = *(uint32_t*)host->h_addr;
 
@@ -159,13 +159,13 @@ tveqless(struct timeval *t1, struct timeval *t0)
 {
     if((t1->tv_sec < t0->tv_sec) ||
        ((t1->tv_sec == t0->tv_sec) && 
-	(t1->tv_usec <= t0->tv_usec)))
+        (t1->tv_usec <= t0->tv_usec)))
     {
-	return 1;
+        return 1;
     }
     else
     {
-	return 0;
+        return 0;
     }
 }
 
@@ -176,7 +176,7 @@ tvadd(struct timeval *tdiff, struct timeval *t1, struct timeval *t0)
     tdiff->tv_sec = t1->tv_sec + t0->tv_sec;
     tdiff->tv_usec = t1->tv_usec + t0->tv_usec;
     if(tdiff->tv_usec >= 1e6)
-	tdiff->tv_sec++, tdiff->tv_usec -= 1e6;
+        tdiff->tv_sec++, tdiff->tv_usec -= 1e6;
 }
 
 /* safe timeval subtract: t1-t0 */
@@ -186,7 +186,7 @@ tvsub(struct timeval *tdiff, struct timeval *t1, struct timeval *t0)
     tdiff->tv_sec = t1->tv_sec - t0->tv_sec;
     tdiff->tv_usec = t1->tv_usec - t0->tv_usec;
     if(tdiff->tv_usec < 0)
-	tdiff->tv_sec--, tdiff->tv_usec += 1e6;
+        tdiff->tv_sec--, tdiff->tv_usec += 1e6;
 }
 
 /*********************************************************************
@@ -213,13 +213,13 @@ FD_POP(int maxfd, fd_set *fd)
 
     for(i=0; i <= maxfd / __NFDBITS; i++)
     {
-	__fd_mask x = fd->__fds_bits[i];
+        __fd_mask x = fd->__fds_bits[i];
 
-	if(i == maxfd / __NFDBITS)
-	{
-	    x &= ~((-2L) << (maxfd % __NFDBITS));
-	}
-	j += pop_count(x);
+        if(i == maxfd / __NFDBITS)
+        {
+            x &= ~((-2L) << (maxfd % __NFDBITS));
+        }
+        j += pop_count(x);
     }
     return j;
 }
@@ -232,23 +232,23 @@ FD_FFS(int start, int maxfd, fd_set *fd)
 
     for(i = start / __NFDBITS; i <= maxfd / __NFDBITS; i++)
     {
-	__fd_mask x = fd->__fds_bits[i];
+        __fd_mask x = fd->__fds_bits[i];
 
-	if(start % __NFDBITS)
-	{
-	    x = x & (~((u_int32_t)0)) <<  (start % __NFDBITS);
-	    start = 0;
-	}	    
+        if(start % __NFDBITS)
+        {
+            x = x & (~((u_int32_t)0)) <<  (start % __NFDBITS);
+            start = 0;
+        }	    
 
-	if(x == 0) 
-	    continue;  /* nothing set here */
+        if(x == 0) 
+            continue;  /* nothing set here */
 
-	j = ffs_long((u_int32_t)x) - 1 + i*__NFDBITS;
+        j = ffs_long((u_int32_t)x) - 1 + i*__NFDBITS;
 
-	if(j > maxfd) 
-	    return 0;
-	else
-	    return j;	
+        if(j > maxfd) 
+            return 0;
+        else
+            return j;	
     }
     return 0;
 }
@@ -262,20 +262,20 @@ FD_FFSandC(int start, int maxfd, fd_set * fd)
 
     for(i = start / __NFDBITS; i <= maxfd / __NFDBITS; i++)
     {
-	__fd_mask x = fd->__fds_bits[i];
+        __fd_mask x = fd->__fds_bits[i];
 
-	if(x == 0)
-	    continue;  /* nothing set here */
+        if(x == 0)
+            continue;  /* nothing set here */
 
-	j = ffs_long((u_int32_t) x) - 1 + i*__NFDBITS;
+        j = ffs_long((u_int32_t) x) - 1 + i*__NFDBITS;
 
-	if(j > maxfd) 
-	    return 0;
-	else
-	{
-	    FD_CLR(j, fd);
-	    return j;	
-	}
+        if(j > maxfd) 
+            return 0;
+        else
+        {
+            FD_CLR(j, fd);
+            return j;	
+        }
     }
     return 0;
 }
@@ -289,8 +289,8 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
 
     if((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-	perror("socket");
-	return -1;
+        perror("socket");
+        return -1;
     }
 
     state[fd].open = 1;
@@ -298,14 +298,14 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
     bzero((char *)&state[fd].sinme, sizeof(state[fd].sinme));
     if(bind(fd, &state[fd].sinme, sizeof(state[fd].sinme)) < 0)
     {
-	perror("bind");
-	return -1;
+        perror("bind");
+        return -1;
     }
 
     if(ioctl(fd, FIONBIO, (char*)&on) < 0) 
     {
-	perror("FIONBIO");
-	return -1;
+        perror("FIONBIO");
+        return -1;
     }
   
     bzero((char *)&state[fd].sinhim, sizeof(state[fd].sinhim));
@@ -315,11 +315,11 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
 
     if(connect(fd, &state[fd].sinhim, sizeof(state[fd].sinhim)) < 0)
     {
-	if(errno != EINPROGRESS)
-	{
-	    perror("connect");      
-	    return -1;
-	}
+        if(errno != EINPROGRESS)
+        {
+            perror("connect");      
+            return -1;
+        }
     }
     return fd;
 }
@@ -341,128 +341,127 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
     sel_rc = select(maxfd+1, &fds_tmp0, &fds_tmp1, &fds_tmp2, &tmp_timeout);
     if(sel_rc < 0)
     {	
-	perror("select");
-	exit(-1);
+        perror("select");
+        exit(-1);
     }
     else if(sel_rc == 0)
     {
-	return 0;   /* nothing to do */
+        return 0;   /* nothing to do */
     }
 
     /* check for exceptions first */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
     {
-	printf("Got an exception on fd %d\n", fd);
+        printf("Got an exception on fd %d\n", fd);
     }
 	
     if(s)
     { 
-	exit(-1);
+        exit(-1);
     }
 
     /* check for any ready to read */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp0)); s = fd+1)
     {
-	int rc;
-	u_int32_t bytes;
+        int rc;
+        u_int32_t bytes;
 	
-	rc = read(fd, &bytes, sizeof(u_int32_t));
-	if(rc == sizeof(u_int32_t))
-	{
-	    if(state[fd].tx_target != state[fd].tx_sent)
-	    {
-		printf("[ warning: premature request on %d ]\n", fd);
-	    }
+        rc = read(fd, &bytes, sizeof(u_int32_t));
+        if(rc == sizeof(u_int32_t))
+        {
+            if(state[fd].tx_target != state[fd].tx_sent)
+            {
+                printf("[ warning: premature request on %d ]\n", fd);
+            }
 
-	    printf("[ request for %d bytes on fd %d ]\n", bytes, fd);
+            printf("[ request for %d bytes on fd %d ]\n", bytes, fd);
 
-	    state[fd].tx_target = bytes;
-	    state[fd].tx_sent   = 0;
-	    state[fd].tx_pkts   = 0;
-	    /* set tx_start if we are server */
-	    if(mode == svr)
-	    {
-		gettimeofday(&state[fd].tx_start, (struct timezone *)0);
-	    }
-	}
+            state[fd].tx_target = bytes;
+            state[fd].tx_sent   = 0;
+            state[fd].tx_pkts   = 0;
+            /* set tx_start if we are server */
+            if(mode == svr)
+            {
+                gettimeofday(&state[fd].tx_start, (struct timezone *)0);
+            }
+        }
     }
 
     /* check for fds ready to write */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp1)); s = fd+1)
     {
-	int diff, len, actual;
+        int diff, len, actual;
 
-	diff = state[fd].tx_target - state[fd].tx_sent;
+        diff = state[fd].tx_target - state[fd].tx_sent;
 	
-	if(diff == 0) 
-	    continue;
+        if(diff == 0) 
+            continue;
 
-	len = MIN(diff, BUF_SIZE);
+        len = MIN(diff, BUF_SIZE);
 
-	/* could loop around this -- more efficient for smaller
-	 * numbers of connections */
+        /* could loop around this -- more efficient for smaller
+         * numbers of connections */
 
-	actual = write(fd, buf, len);
-	if(actual < 0)
-	{
-	    if(errno == EWOULDBLOCK)
-	    {
-		continue;
-	    }
-	    else if(errno == EPIPE)
-	    {
-		fprintf(stderr, 
-			"[ fd %d received EPIPE; closing socket... ]\n", fd);
-		if(state[fd].open)
-		{
-		    close(fd);
-		    state[fd].open = 0;
-		    state[fd].tx_stop = state[fd].tx_start;
-		    FD_CLR(fd, fds_active);
-		    FD_SET(fd, fds_finished);
-		    fin++;
-		}
-		else
-		{
-		    fprintf(stderr, 
-			    "[ fd %d received EPIPE whilst not open! ]\n", fd);
-		}
-	    }
-	    else /* other errno */
-	    {
-		fprintf(stderr, "errno = %d; ", errno);
-		perror("write");
-		exit(-1);
-	    }
-	}
-	else if(actual == 0)
-	{
-	    printf("[ wrote zero to fd %d ]\n", fd);
-	}
-	else /* actual > 0 */
-	{
-	    state[fd].tx_sent     += actual;
-	    state[fd].tx_sent_cpt += actual;
-	    state[fd].tx_pkts++;
+        actual = write(fd, buf, len);
+        if(actual < 0)
+        {
+            if(errno == EWOULDBLOCK)
+            {
+                continue;
+            }
+            else if(errno == EPIPE)
+            {
+                fprintf(stderr, 
+                        "[ fd %d received EPIPE; closing socket... ]\n", fd);
+                if(state[fd].open)
+                {
+                    close(fd);
+                    state[fd].open = 0;
+                    state[fd].tx_stop = state[fd].tx_start;
+                    FD_CLR(fd, fds_active);
+                    FD_SET(fd, fds_finished);
+                    fin++;
+                }
+                else
+                {
+                    fprintf(stderr, 
+                            "[ fd %d received EPIPE whilst not open! ]\n", fd);
+                }
+            }
+            else /* other errno */
+            {
+                fprintf(stderr, "errno = %d; ", errno);
+                perror("write");
+                exit(-1);
+            }
+        }
+        else if(actual == 0)
+        {
+            printf("[ wrote zero to fd %d ]\n", fd);
+        }
+        else /* actual > 0 */
+        {
+            state[fd].tx_sent     += actual;
+            state[fd].tx_sent_cpt += actual;
+            state[fd].tx_pkts++;
 
-	    if(diff == actual)
-	    { /* we're done */
-		FD_CLR(fd, fds_active);
-		close(fd);
-		state[fd].open = 0;
-		FD_SET(fd, fds_finished);
+            if(diff == actual)
+            { /* we're done */
+                FD_CLR(fd, fds_active);
+                close(fd);
+                state[fd].open = 0;
+                FD_SET(fd, fds_finished);
 
-		gettimeofday(&state[fd].tx_stop, (struct timezone *)0);	    
-		tvsub(&d, &state[fd].tx_stop, &state[fd].tx_start);
-		printf("[ finished sending %d bytes (%d pkts) to fd %d "
-		       "in %lu.%03lus ]\n",
-		       state[fd].tx_target, state[fd].tx_pkts, fd, 
-		       d.tv_sec, d.tv_usec/1000);
+                gettimeofday(&state[fd].tx_stop, (struct timezone *)0);	    
+                tvsub(&d, &state[fd].tx_stop, &state[fd].tx_start);
+                printf("[ finished sending %d bytes (%d pkts) to fd %d "
+                       "in %lu.%03lus ]\n",
+                       state[fd].tx_target, state[fd].tx_pkts, fd, 
+                       d.tv_sec, d.tv_usec/1000);
 
-		fin++;
-	    }
-	}
+                fin++;
+            }
+        }
     }
     return fin;
 }
-
