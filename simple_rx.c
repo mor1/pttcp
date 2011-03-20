@@ -47,7 +47,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-
 #include "trc.h"
 #include "pttcp.h"
 #include "pttcp_util.h"
@@ -70,6 +69,7 @@ simple_rx(int num_ports, int base_rx_port)
     fd_set fds_listeners, fds_active, fds_finished;
 
     int s, rc, fd;
+    ENTER;
 
     FD_ZERO(&fds_listeners);
     FD_ZERO(&fds_active);
@@ -77,27 +77,19 @@ simple_rx(int num_ports, int base_rx_port)
 
     /* listners on num_ports */
     if((maxlfd = create_listeners(&fds_listeners, num_ports, base_rx_port)) < 0)
-    {
         exit(-1);
-    }
 
     datafd = maxlfd+1;
-
     while(1)
     {
         /* grab any new incoming connections */
         rc = accept_incoming(maxlfd, &fds_listeners, &fds_active);
-        if(rc > 0)
-        {
-            opened += rc;
-        }
+        if(rc > 0) opened += rc;
 
         /* select on the data FDs */
         rc = sink_data(&fds_active, &fds_finished);
-        if(rc > 0)
-        {
-            closed += rc;
-        }
+        if(rc > 0) closed += rc;
+
         cnt++; 
 		
         /* close those that have finished */
@@ -124,25 +116,14 @@ simple_rx(int num_ports, int base_rx_port)
 
             for(i=datafd; i <= maxfd; i++)
             {
-                if(state[i].rx_rcvd_cpt)
-                {
-                    prog++;
-                }
+                if(state[i].rx_rcvd_cpt) prog++;
                 totb += state[i].rx_rcvd_cpt;
                 mbs   = (double)(8.0*state[i].rx_rcvd_cpt) / (double)diffus;
                 tmbs += mbs;
 	      
-                if(state[i].open) 
-                {
-                    fprintf(stderr,"%c%.4f ",'+', mbs);
-                }
+                if(state[i].open) fprintf(stderr,"%c%.4f ",'+', mbs);
                 else
-                {
-                    if(verbose)
-                    {
-                        fprintf(stderr,"%c%.4f ",'-', mbs);
-                    }
-                }
+                    if(verbose) fprintf(stderr,"%c%.4f ",'-', mbs);
                 state[i].rx_rcvd_cpt = 0;
             }
 
@@ -157,4 +138,5 @@ simple_rx(int num_ports, int base_rx_port)
             last = now;
         }
     } /* end of while 1 */
+    RETURN;
 }

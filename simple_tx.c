@@ -48,10 +48,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-
-#include "trc.h"
 #include "pttcp_util.h"
 #include "pttcp.h"
+#include "trc.h"
 
 extern state_t state[__FD_SETSIZE];
 extern double  scalar;
@@ -69,6 +68,7 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
     fd_set fds_active, fds_finished;
     unsigned long ipaddr;
     double tmbs = 0;
+    ENTER;
 
     ipaddr = host2ipaddr(host);
 
@@ -79,14 +79,8 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
     for(i=0; i<n; i++)
     {
         int fd = create_tx_tcp(ipaddr, base_rx_port+(i%num_ports));
-        if(fd < 0)
-        {
-            fprintf(stderr, "Unable to open connection!\n");
-        }
-        if(fd > maxfd) 
-        {
-            maxfd = fd;
-        }
+        if(fd < 0) fprintf(stderr, "Unable to open connection!\n");
+        if(fd > maxfd) maxfd = fd;
         state[fd].tx_target = bytes;
         state[fd].tx_sent   = 0;
         state[fd].tx_pkts   = 0;
@@ -102,10 +96,7 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
         struct timeval tdiff;
 	
         fin = send_data(&fds_active, &fds_finished);
-        if(fin)
-        {
-            fprintf(stderr, "%d finished\n", fin);
-        }
+        if(fin) fprintf(stderr, "%d finished\n", fin);
 
         for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_finished)); s = fd+1)
         {
@@ -116,19 +107,13 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
                 /* we got closed before completing so try and set up
                  * again */
                 int newfd = create_tx_tcp(ipaddr, base_rx_port+(fd%num_ports));
-                if(newfd < 0)
-                {
-                    fprintf(stderr, "Unable to open connection!\n");
-                }
+                if(newfd < 0) fprintf(stderr, "Unable to open connection!\n");
 
                 fprintf(stderr, 
                         "Connection %d was aborted, so restart using fd %d\n",
                         fd, newfd);
 
-                if(newfd > maxfd) 
-                {
-                    maxfd = newfd;
-                }
+                if(newfd > maxfd) maxfd = newfd;
 		
                 state[newfd].tx_target = bytes;
                 state[newfd].tx_sent   = 0;
@@ -149,13 +134,11 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
                     fd, state[fd].tx_sent);
 
             if((tdiff.tv_sec == 0) && (tdiff.tv_usec == 0))
-            {
                 mbs = 0;
-            }
             else
             {
-                mbs = (double)(8.0*state[fd].tx_sent) / 
-                    (double)(tdiff.tv_sec*1e6 + tdiff.tv_usec); 
+                mbs = (double)(8.0*state[fd].tx_sent) 
+                      / (double)(tdiff.tv_sec*1e6 + tdiff.tv_usec); 
                 fprintf(stderr, 
                         "%ld.%03lds => %.4f Mb/s. %d still active\n", 
                         (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
@@ -169,4 +152,5 @@ simple_tx(int n, int bytes, char *host, int num_ports, int base_rx_port)
     fprintf(stderr, 
             "Total b/w estimate was %.2f Mb/s, "
             "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
+    RETURN;
 }

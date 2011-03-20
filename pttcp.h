@@ -85,21 +85,23 @@ typedef enum {
 
 void surge_client(int n, char *host, int num_ports, int base_rx_port);
 
-void continuous_client(int n, int bytes, char *host, int num_ports, int
-                       base_rx_port);
+void continuous_client(int n, int bytes, char *host, int num_ports, 
+                       int base_rx_port);
 
-void simple_tx(int n, int bytes, char *host, int num_ports, int
-               base_rx_port);
+void simple_tx(int n, int bytes, char *host, int num_ports, 
+               int base_rx_port);
 
 void simple_rx(int num_ports, int base_rx_port);
 
-void simple_client(int n, int bytes, char *host, int num_ports, int
-                   base_rx_port);
+void simple_client(int n, int bytes, char *host, int num_ports, 
+                   int base_rx_port);
 
 void simple_server(int num_ports, int base_rx_port);
 
 int sink_data(fd_set *fds_active, fd_set *fds_finished);
+
 void send_request(fd_set *fds_new, fd_set *fds_active);
+
 int create_listeners(fd_set *fds_listeners, int num_ports, 
                      int base_rx_port);
 

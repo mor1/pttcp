@@ -86,10 +86,7 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
             printf("Unable to open connection!\n");
             exit(-1);
         }
-        if(fd > maxfd) 
-        {
-            maxfd = fd;
-        }
+        if(fd > maxfd) maxfd = fd;
 
         state[fd].tx_target = bytes;
         state[fd].tx_sent   = 0;
@@ -121,8 +118,8 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
 
             tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
 	  
-            mbs = (double)(8.0*state[fd].rx_rcvd) /
-                (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
+            mbs = (double)(8.0*state[fd].rx_rcvd) 
+                  / (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
             tmbs += mbs;
 
@@ -147,10 +144,7 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
                 continue;
             }
 	  
-            if(new_fd > maxfd) 
-            {
-                maxfd = new_fd;
-            }
+            if(new_fd > maxfd) maxfd = new_fd;
 	  
             state[new_fd].rx_rcvd = 0;
             FD_SET(new_fd, &fds_new);

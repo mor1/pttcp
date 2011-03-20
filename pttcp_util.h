@@ -40,6 +40,11 @@
 #ifndef _pttcp_util_h_
 #define _pttcp_util_h_
 
+#if defined(__linux__) && defined(__LP64__)
+# define NFDBITS64
+# define __USE_GNU
+#endif
+
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
@@ -51,7 +56,12 @@ unsigned long host2ipaddr(const char*);
 int           tveqless(struct timeval*, struct timeval*);
 void          tvadd(struct timeval*, struct timeval*, struct timeval*);
 void          tvsub(struct timeval*, struct timeval*, struct timeval*);
-unsigned int  pop_count(unsigned int);
+
+#ifdef NFDBITS64
+unsigned int  pop_count(u_int64_t);
+#else
+unsigned int  pop_count(u_int32_t);
+#endif
 int           FD_POP(int, fd_set*);
 int           FD_FFS(int, int, fd_set*);
 int           FD_FFSandC(int, int, fd_set*);

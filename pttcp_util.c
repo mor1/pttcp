@@ -46,11 +46,11 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <unistd.h>
-#include <string.h>
 
 #include "trc.h"
 #include "pttcp.h"
 #include "pttcp_util.h"
+#include <string.h> // behaviour affected by defines in pttcp_util.h
 
 extern char   *prog_name;
 extern state_t state[__FD_SETSIZE];
@@ -58,6 +58,7 @@ extern int     maxfd;
 extern pttcp_t mode;
 
 extern struct timeval tsmallerpause;
+extern struct timeval tlongerpause;
 extern struct timeval tpause;
 extern struct timeval tzero;
 
@@ -73,9 +74,7 @@ fatal(char *format, ...)
     fprintf(stderr, "%s FATAL: ", prog_name);
     vfprintf(stderr, format, ap);
     if(*format && format[strlen(format) - 1] != '\n')
-    {
         fprintf(stderr, "\n");
-    }
     fflush(stderr);
     va_end(ap);
 
@@ -91,9 +90,7 @@ warning(char *format, ...)
     fprintf(stderr, "%s WARNING: ", prog_name);
     vfprintf(stderr, format, ap);
     if(*format && format[strlen(format) - 1] != '\n')
-    {
         fprintf(stderr, "\n");
-    }
     fflush(stderr);
     va_end(ap);
 }
@@ -108,10 +105,7 @@ getint(char *str)
     char *str2;
 
     l = strtol(str, &str2, 10);
-    if(str == str2)
-    {
-        fatal("%s: not an integer", str);
-    }
+    if(str == str2) fatal("%s: not an integer", str);
     return (int)l;
 }
 
@@ -122,11 +116,7 @@ getdouble(char *str)
     char *str2;
 
     d = strtod(str, &str2);
-    if(str == str2)
-    {
-        fprintf(stderr, "%s: not a double", str);
-        exit(-1);
-    }
+    if(str == str2) fatal(stderr, "%s: not a double", str);
     return (double) d;
 }
 
@@ -156,16 +146,11 @@ host2ipaddr(const char* str)
 int
 tveqless(struct timeval *t1, struct timeval *t0)
 {
-    if((t1->tv_sec < t0->tv_sec) ||
-       ((t1->tv_sec == t0->tv_sec) && 
-        (t1->tv_usec <= t0->tv_usec)))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return (
+        ((t1->tv_sec < t0->tv_sec) ||
+         ((t1->tv_sec == t0->tv_sec) && (t1->tv_usec <= t0->tv_usec)))
+        ? 1
+        : 0); 
 }
 
 /* safe timeval add: t1+t0 */
@@ -193,24 +178,39 @@ tvsub(struct timeval *tdiff, struct timeval *t1, struct timeval *t0)
  */
 
 /* count 1s ("population") in (binary) w */
-inline unsigned int
-pop_count(unsigned int w)
+#ifdef NFDBITS64
+inline u_int32_t 
+pop_count(u_int64_t w)
 {
-    unsigned int res = (w & 0x55555555) + ((w >> 1) & 0x55555555);
+    u_int64_t res = (w & 0x5555555555555555ULL) + ((w >> 1) & 0x5555555555555555ULL);
+    res = (res & 0x3333333333333333ULL) + ((res >>  2) & 0x3333333333333333ULL);
+    res = (res & 0x0F0F0F0F0F0F0F0FULL) + ((res >>  4) & 0x0F0F0F0F0F0F0F0FULL);
+    res = (res & 0x00FF00FF00FF00FFULL) + ((res >>  8) & 0x00FF00FF00FF00FFULL);
+    res = (res & 0x0000FFFF0000FFFFULL) + ((res >> 16) & 0x0000FFFF0000FFFFULL);
+    return (u_int32_t)
+        ((res & 0x00000000FFFFFFFFULL) + ((res >> 32) & 0x00000000FFFFFFFFULL)); 
+}
+#else
+inline u_int32_t
+pop_count(u_int32_t w)
+{
+    u_int32_t res = (w & 0x55555555) + ((w >> 1) & 0x55555555);
     res = (res & 0x33333333) + ((res >> 2) & 0x33333333);
     res = (res & 0x0F0F0F0F) + ((res >> 4) & 0x0F0F0F0F);
     res = (res & 0x00FF00FF) + ((res >> 8) & 0x00FF00FF);
     return (res & 0x0000FFFF) + ((res >> 16) & 0x0000FFFF);
 }
-
+#endif
+      
 /* population count, noting that fd set may be more than a single
  * unsigned int in size */
 int
 FD_POP(int maxfd, fd_set *fd)
 {
     int i, j=0;
+    ENTER;
 
-    for(i=0; i <= maxfd / NFDBITS; i++)
+    for(i=0; i <= maxfd/NFDBITS; i++)
     {
 #ifdef __linux__
         fd_mask x = fd->__fds_bits[i];
@@ -218,13 +218,15 @@ FD_POP(int maxfd, fd_set *fd)
         fd_mask x = fd->fds_bits[i];
 #endif
 
-        if(i == maxfd / NFDBITS)
-        {
+        if(i == maxfd/NFDBITS)
+#ifdef NFDBITS64
+            x &= ~((-2LL) << (maxfd % NFDBITS));
+#else
             x &= ~((-2L) << (maxfd % NFDBITS));
-        }
+#endif
         j += pop_count(x);
     }
-    return j;
+    RETURN j;
 }
 
 /* find first 1 in (binary) fd set after `start' */
@@ -232,8 +234,9 @@ int
 FD_FFS(int start, int maxfd, fd_set *fd)
 {
     int i,j;
+    ENTER;
 
-    for(i = start / NFDBITS; i <= maxfd / NFDBITS; i++)
+    for(i = start/NFDBITS; i <= maxfd/NFDBITS; i++)
     {
 #ifdef __linux__
         fd_mask x = fd->__fds_bits[i];
@@ -243,53 +246,56 @@ FD_FFS(int start, int maxfd, fd_set *fd)
 
         if(start % NFDBITS)
         {
-            x = x & (~((u_int32_t)0)) <<  (start % NFDBITS);
+#ifdef NFDBITS64
+            x &= ((~0ULL) << (start % NFDBITS));
+#else
+            x &= ((~((u_int32_t)0)) << (start % NFDBITS));
+#endif
             start = 0;
         }	    
 
-        if(x == 0) 
-            continue;  /* nothing set here */
+        if(x == 0) continue;  /* nothing set here */
 
-        j = ffs((u_int32_t)x) - 1 + i*NFDBITS;
-
-        if(j > maxfd) 
-            return 0;
-        else
-            return j;	
+#ifdef NFDBITS64
+        j = ffsll(x) - 1 + i*NFDBITS;
+#else
+        j = ffs(x) - 1 + i*NFDBITS;
+#endif
+        RETURN ((j > maxfd)? 0 : j);
     }
-    return 0;
+    RETURN 0;
 }
 
 /* the following assumes all bits before `start' are clear, and clears
  * the bit it finds from the fd set; i.e. as above, but clear that bit */
 int 
-FD_FFSandC(int start, int maxfd, fd_set * fd)
+FD_FFSandC(int start, int maxfd, fd_set *fd)
 {
-    int i,j;
+    int i,j=0;
+    ENTER;
 
-    for(i = start / NFDBITS; i <= maxfd / NFDBITS; i++)
+    for(i = start/NFDBITS; i <= maxfd/NFDBITS; i++)
     {
 #ifdef __linux__
         fd_mask x = fd->__fds_bits[i];
 #else
         fd_mask x = fd->fds_bits[i];
 #endif
-                                    
 
-        if(x == 0)
-            continue;  /* nothing set here */
+        if(x == 0) continue;  /* nothing set here */
 
-        j = ffs((u_int32_t) x) - 1 + i*NFDBITS;
-
-        if(j > maxfd) 
-            return 0;
+#ifdef NFDBITS64
+        j = ffsll(x) - 1 + i*NFDBITS;
+#else
+        j = ffs(x) - 1 + i*NFDBITS;
+#endif
+        if (j > maxfd) j=0;
         else
-        {
             FD_CLR(j, fd);
-            return j;	
-        }
+
+        RETURN j;
     }
-    return 0;
+    RETURN 0;
 }
 
 /* create required tx connection */
@@ -298,26 +304,28 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
 {
     int fd;
     int on = 1;   /* 1 = non blocking */
+    ENTER;
 
     if((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket");
-        return -1;
+        RETURN -1;
     }
 
     state[fd].open = 1;
 
     bzero((char *)&state[fd].sinme, sizeof(state[fd].sinme));
-    if(bind(fd, (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
+    if(bind(fd, 
+            (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
     {
         perror("bind");
-        return -1;
+        RETURN -1;
     }
 
     if(ioctl(fd, FIONBIO, (char*)&on) < 0) 
     {
         perror("FIONBIO");
-        return -1;
+        RETURN -1;
     }
   
     bzero((char *)&state[fd].sinhim, sizeof(state[fd].sinhim));
@@ -325,15 +333,15 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
     state[fd].sinhim.sin_port        = htons(d_port);
     state[fd].sinhim.sin_addr.s_addr = d_ipaddr;
 
-    if(connect(fd, (const struct sockaddr *)&state[fd].sinhim, sizeof(state[fd].sinhim)) < 0)
-    {
+    if(connect(fd, 
+               (const struct sockaddr *)&state[fd].sinhim, 
+               sizeof(state[fd].sinhim)) < 0)
         if(errno != EINPROGRESS)
         {
             perror("connect");      
-            return -1;
+            RETURN -1;
         }
-    }
-    return fd;
+    RETURN fd;
 }
 
 /* catch exceptions, and send data (either how much tx wants, or (if
@@ -344,11 +352,12 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
     struct timeval tmp_timeout, d;
     int sel_rc, fd, s, fin=0;
     char buf[BUF_SIZE];
+    ENTER;
     
     fd_set fds_tmp0, fds_tmp1, fds_tmp2;
 
     fds_tmp0 = fds_tmp1 = fds_tmp2 = *fds_active;
-    tmp_timeout = tsmallerpause;
+    tmp_timeout = tlongerpause; //tsmallerpause;
 
     sel_rc = select(maxfd+1, &fds_tmp0, &fds_tmp1, &fds_tmp2, &tmp_timeout);
     if(sel_rc < 0)
@@ -357,20 +366,12 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
         exit(-1);
     }
     else if(sel_rc == 0)
-    {
-        return 0;   /* nothing to do */
-    }
+        RETURN 0;   /* nothing to do */
 
     /* check for exceptions first */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
-    {
-        printf("Got an exception on fd %d\n", fd);
-    }
-	
-    if(s)
-    { 
-        exit(-1);
-    }
+        printf("Got an exception on fd %d\n", fd);	
+    if(s) exit(-1);
 
     /* check for any ready to read */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp0)); s = fd+1)
@@ -382,20 +383,15 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
         if(rc == sizeof(u_int32_t))
         {
             if(state[fd].tx_target != state[fd].tx_sent)
-            {
                 printf("[ warning: premature request on %d ]\n", fd);
-            }
 
             printf("[ request for %d bytes on fd %d ]\n", bytes, fd);
-
             state[fd].tx_target = bytes;
             state[fd].tx_sent   = 0;
             state[fd].tx_pkts   = 0;
             /* set tx_start if we are server */
             if(mode == svr)
-            {
                 gettimeofday(&state[fd].tx_start, (struct timezone *)0);
-            }
         }
     }
 
@@ -406,8 +402,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
 
         diff = state[fd].tx_target - state[fd].tx_sent;
 	
-        if(diff == 0) 
-            continue;
+        if(diff == 0) continue;
 
         len = MIN(diff, BUF_SIZE);
 
@@ -417,10 +412,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
         actual = write(fd, buf, len);
         if(actual < 0)
         {
-            if(errno == EWOULDBLOCK)
-            {
-                continue;
-            }
+            if(errno == EWOULDBLOCK) continue;
             else if(errno == EPIPE)
             {
                 fprintf(stderr, 
@@ -435,10 +427,8 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
                     fin++;
                 }
                 else
-                {
                     fprintf(stderr, 
                             "[ fd %d received EPIPE whilst not open! ]\n", fd);
-                }
             }
             else /* other errno */
             {
@@ -467,13 +457,13 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
                 gettimeofday(&state[fd].tx_stop, (struct timezone *)0);	    
                 tvsub(&d, &state[fd].tx_stop, &state[fd].tx_start);
                 printf("[ finished sending %d bytes (%d pkts) to fd %d "
-                       "in %lu.%03lus ]\n",
+                       "in %lu.%03lds ]\n",
                        state[fd].tx_target, state[fd].tx_pkts, fd, 
-                       d.tv_sec, d.tv_usec/1000);
+                       d.tv_sec, (long int)d.tv_usec/1000);
 
                 fin++;
             }
         }
     }
-    return fin;
+    RETURN fin;
 }

@@ -56,7 +56,6 @@
 #include <getopt.h>
 #include <unistd.h>
 
-
 #include "trc.h"
 #include "pttcp.h"
 #include "pttcp_util.h"
@@ -78,6 +77,7 @@ int          verbose   = 0;
 
 const struct timeval tsmallerpause = { 0,    1 }; /* 1us */
 const struct timeval tpause        = { 0, 1000 }; /* 1ms */
+const struct timeval tlongerpause  = { 0, 100000 }; /* 100ms */
 const struct timeval tzero         = { 0,    0 }; 
 
 extern char *optarg;
@@ -108,24 +108,15 @@ shut_sockets(int signum)
     int i;
 
     if(signum == SIGALRM) 
-    {
-        if(verbose) 
-        {
-            fprintf(stderr,"timesup\n");
-      	}
-    }
-    if(verbose) 
-    {
-        printf("Shutdown called\n");
-    }
+        if(verbose) fprintf(stderr,"timesup\n");
+    if(verbose) printf("Shutdown called\n");
+
     for(i=0; i <= maxfd; i++)
-    {
         if(state[i].open)
         {
             fprintf(stderr, "%d ",i);
             close(i);
         }
-    }
     fprintf(stderr, "\n");
     exit(0);
 }
@@ -180,34 +171,22 @@ main(int argc, char **argv)
 
             case 1001:
                 rc = parse_distn(&interpage, &optind, argv, argc);
-                if(rc<0) 
-                {
-                    usage(argv[0]);
-                }
+                if(rc<0) usage(argv[0]);
                 break;
 
             case 1002:
                 rc = parse_distn(&objperpage, &optind, argv, argc);
-                if(rc<0) 
-                {
-                    usage(argv[0]);
-                }
+                if(rc<0) usage(argv[0]);
                 break;
 
             case 1003:
                 rc = parse_distn(&interobj, &optind, argv, argc);
-                if(rc<0) 
-                {
-                    usage(argv[0]);
-                }
+                if(rc<0) usage(argv[0]);
                 break;
 
             case 1004:
                 rc = parse_distn(&objsize, &optind, argv, argc);
-                if(rc<0) 
-                {
-                    usage(argv[0]);
-                }
+                if(rc<0) usage(argv[0]);
                 break;
 
             case 'R':
@@ -218,10 +197,7 @@ main(int argc, char **argv)
 	    
                 rc = sscanf(optarg,"%ld",&full_seed);
             
-                if(rc != 1) 
-                {
-                    usage(argv[0]);
-                }
+                if(rc != 1) usage(argv[0]);
                         
                 seed_16v[0] = (short)(0xffffl & full_seed);
                 seed_16v[1] = (short)((~0xffffl & full_seed) >> 16);
@@ -231,63 +207,37 @@ main(int argc, char **argv)
             }
 
             case 'r':          /* receiver */
-                if(mode == unset)
-                {
-                    mode = rx;
-                }
+                if(mode == unset) mode = rx;
                 else
-                {
                     usage(argv[0]);
-                }
                 break;
       
             case 't':          /* transmitter */
-                if(mode == unset)
-                {
-                    mode = tx;
-                }
+                if(mode == unset) mode = tx;
                 else
-                {
                     usage(argv[0]);
-                }
 
                 strncpy(dhost, optarg, 255);
                 break;
 
             case 's':          /* server */
-                if(mode == unset)
-                {
-                    mode = svr;
-                }
+                if(mode == unset) mode = svr;
                 else
-                {
                     usage(argv[0]);
-                }
                 break;
 
             case 'c':          /* client */
-                if(mode == unset)
-                {
-                    mode = cts_clt;
-                }
+                if(mode == unset) mode = cts_clt;
                 else
-                {
                     usage(argv[0]);
-                }
 
                 strncpy(dhost, optarg, 255);
                 break;
 
             case 'S':          /* surge client */
-                if(mode == unset)
-                {
-			
-                    mode = surge_clt;
-                }
+                if(mode == unset) mode = surge_clt;
                 else
-                {
                     usage(argv[0]);
-                }
                 strncpy(dhost, optarg, 255);
                 break;
 
@@ -342,12 +292,9 @@ main(int argc, char **argv)
             (int) ((run_time - (double)run_time_timerval.it_value.tv_sec) * 1e6 );
 
         if(verbose) 
-        {
             fprintf(stderr,"run time %d.%06d\n",
                     (int)run_time_timerval.it_interval.tv_sec,
                     (int)run_time_timerval.it_interval.tv_usec);
-        }
-	
 	
         rc = setitimer(ITIMER_REAL, &run_time_timerval,NULL);
         if(rc != 0) 
@@ -387,7 +334,7 @@ main(int argc, char **argv)
         default:
             usage(argv[0]);
     }
-    return 0;
+    RETURN 0;
 }
 
 /*********************************************************************
@@ -398,13 +345,14 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
 {
     int i, fd, maxfd=0;
     int on = 1;   /*  1 = non blocking  */
+    ENTER;
 
     for(i=0; i<num_ports; i++)
     {
         if((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             perror("socket");
-            return -1;
+            RETURN -1;
         }
 
         state[fd].open = 1;
@@ -424,27 +372,24 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
         if(bind(fd, (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
         {
             perror("bind");
-            return -1;
+            RETURN -1;
         }
         if(ioctl(fd, FIONBIO, (char*)&on) < 0) 
         {
             perror("FIONBIO");
-            return -1;
+            RETURN -1;
         }
         if(listen(fd, 16) < 0)
         {
             perror("listen");
-            return -1;
+            RETURN -1;
         }
       
         FD_SET(fd, fds_listeners);
 
-        if(fd > maxfd) 
-        {
-            maxfd = fd;
-        }
+        if(fd > maxfd) maxfd = fd;
     }
-    return maxfd;
+    RETURN maxfd;
 }
 
 /*********************************************************************
@@ -457,6 +402,7 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
     fd_set fds_tmp1, fds_tmp2;
     struct timeval tmp_timeout;
     int on = 1;   /* 1 = non blocking */
+    ENTER;
 
     tmp_timeout = tzero;
 			 
@@ -465,7 +411,6 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
 
     /* zero timeout */
     rc = select(maxlfd+1, &fds_tmp1, &fds_zero, &fds_tmp2, &tmp_timeout);
-  
     for(s=0; (rc>0) && (fd = FD_FFSandC(s, maxlfd, &fds_tmp2)); s = fd+1)
     {
         fprintf(stderr, "listen: got an exception on fd %d !!\n", fd);
@@ -482,18 +427,14 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
         if((new_fd = accept(fd, (struct sockaddr *)&frominet, &fromlen)) < 0)
         {
             perror("accept");
-            return -1;
+            RETURN -1;
         }
         else
         {
             if(verbose)
-            {
                 fprintf(stderr, "[ accept new_fd %d from fd %d ]\n", new_fd, fd);
-            }
-            if(new_fd > maxfd) 
-            {
-                maxfd = new_fd;
-            }
+            
+            if(new_fd > maxfd) maxfd = new_fd;
             if(ioctl(new_fd, FIONBIO, (char*)&on) < 0) 
             {
                 perror("FIONBIO");
@@ -513,15 +454,13 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
             state[new_fd].open    = 1;
 
             if(mode == rx)
-            {
                 gettimeofday(&state[new_fd].rx_start, (struct timezone *)0);
-            }
 
             FD_SET(new_fd, fds_active);
             count++;
         }	 
     }  
-    return count;
+    RETURN count;
 }
 
 /*********************************************************************
@@ -535,15 +474,16 @@ sink_data(fd_set *fds_active, fd_set *fds_finished)
     fd_set fds_tmp1, fds_tmp2;
     struct timeval tmp_timeout;
     char buf[BUF_SIZE];
+    ENTER;
 
-    tmp_timeout = tsmallerpause;
+    tmp_timeout = tlongerpause; //tsmallerpause;
 
     fds_tmp1 = *fds_active;
     fds_tmp2 = *fds_active;
 
     /* 100ms timeout */
     sel_rc = select(maxfd+1, &fds_tmp1, &fds_zero, &fds_tmp2, &tmp_timeout);
-   
+    
     /* check for exceptions */
     for(s=0; (sel_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
     {
@@ -560,16 +500,12 @@ sink_data(fd_set *fds_active, fd_set *fds_finished)
     for(s=0; (sel_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_tmp1)); s = fd+1)
     {
         int recv_rc;
-
         while(1)
         {
             recv_rc = recvfrom(fd, buf, sizeof(buf), 0, NULL, NULL);
             if(recv_rc < 0)
             {
-                if(errno != EWOULDBLOCK)
-                {
-                    perror("Read");
-                }
+                if(errno != EWOULDBLOCK) perror("recvfrom");
                 break;
             }
             else if(recv_rc == 0)
@@ -589,7 +525,7 @@ sink_data(fd_set *fds_active, fd_set *fds_finished)
             }
         }	  	  
     }
-    return fin;
+    RETURN fin;
 }
 
 /*********************************************************************
@@ -602,29 +538,25 @@ send_request(fd_set *fds_new, fd_set *fds_active)
     struct timeval tmp_timeout;
     int rc, fd, s;
     fd_set fds_tmp1, fds_tmp2;
+    ENTER;
 
     fds_tmp1 = fds_tmp2 = *fds_new;
     tmp_timeout = tzero;
 
     rc = select(maxfd+1, &fds_zero, &fds_tmp1, &fds_tmp2, &tmp_timeout);
-
     if(rc < 0)
     {	
         perror("select");
         exit(-1);
     }
 
-    if(!rc)
-        return;   /* nothing to do */
+    if(!rc) return;   /* nothing to do */
 
     /* check for exceptions first */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
-    {
         printf("[ send request: got an exception on fd %d ]\n", fd);
-    }
 	
-    if(s)
-        exit(-1);
+    if(s) exit(-1);
 
     /* check for fds ready to write */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp1)); s = fd+1)
@@ -637,13 +569,13 @@ send_request(fd_set *fds_new, fd_set *fds_active)
         if(rc != sizeof(u_int32_t))
         {
             printf("[ send request: write on %d got %d ]\n", fd, rc);
-            if(rc < 0)
-                perror("send request write");
+            if(rc < 0) perror("send request write");
         }
 
         FD_CLR(fd, fds_new);
         FD_SET(fd, fds_active);
     }
+    RETURN;
 }
 
 /*********************************************************************

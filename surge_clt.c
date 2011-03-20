@@ -215,7 +215,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
     {
         case Distn_Function_Constant:
         {
-            if((argc - *optind) < 2) 
+            if((argc - *optind) < 2)
             {
                 fprintf(stderr,
                         "%s: constant requries one argument\n", __FUNCTION__);
@@ -268,7 +268,8 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
             if((argc - *optind) < 3) 
             {
                 fprintf(stderr,                        
-                        "%s: pareto requries two arguments (mean and shape)\n", __FUNCTION__);
+                        "%s: pareto requries two arguments (mean and shape)\n",
+                        __FUNCTION__);
                 rv = -1;
                 goto abort;
             }
@@ -299,7 +300,8 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
         default:
             fprintf(stderr,
-                    "%s: unknown distribution type %s\n", __FUNCTION__, argv[*optind]);
+                    "%s: unknown distribution type %s\n", 
+                    __FUNCTION__, argv[*optind]);
             rv = -1;
     }
 
@@ -348,18 +350,14 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             exit(-1);
         }
 
-        if(fd > maxfd) 
-            maxfd = fd;
+        if(fd > maxfd) maxfd = fd;
 
-
-        state[fd].client_id=fd;
-
-        state[fd].object_count=objperpage_distn();
-
-        state[fd].tx_target = objsize_distn();
-        state[fd].tx_sent   = 0;
-        state[fd].tx_pkts   = 0;
-        state[fd].rx_rcvd   = 0;
+        state[fd].client_id    = fd;
+        state[fd].object_count = objperpage_distn();
+        state[fd].tx_target    = objsize_distn();
+        state[fd].tx_sent      = 0;
+        state[fd].tx_pkts      = 0;
+        state[fd].rx_rcvd      = 0;
         FD_SET(fd, &fds_new);
 
         tp.tv_usec = (int)(drand48()*10000.0);
@@ -404,7 +402,6 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             close(fd);
             state[fd].open = 0;
 
-
             /* control loop for time keeping:
              *
              * this should embody the idea that if the object count
@@ -415,12 +412,12 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
 
             state[fd].object_count--;
 
-            if(state[fd].object_count > 0) {
-		
+            if(state[fd].object_count > 0)
                 time_us = interobj_distn();
-            }else{
+            else
+            {
                 time_us = interpage_distn();
-                state[fd].object_count=objperpage_distn();
+                state[fd].object_count = objperpage_distn();
             }
 
 
@@ -441,28 +438,29 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             FD_SET(state[fd].client_id, &ids_sleeping);
         }
 
-
-
         for(s=0;(client_id = FD_FFS(s, maxfd, &ids_sleeping));
             s = client_id+1)
         {
 	
             gettimeofday(&current_time,NULL);
 
-            if(tveqless(&state[client_id].next_start_time,&current_time)) {
-                if(state[client_id].object_count > 0) {
+            if(tveqless(&state[client_id].next_start_time,&current_time)) 
+            {
+                if(state[client_id].object_count > 0) 
+                {
                     FD_CLR(client_id, &ids_sleeping);
                     FD_SET(client_id, &ids_want_to_run);
                     want_to_run_rc++;
-                }else{
-
+                }
+                else
+                {
                     /* this exception handles the empty page in which
                        case if the time expires we just wait another
                        interpage and calculate another value for the
                        objperpage */
 
                     time_us = interpage_distn();
-                    state[fd].object_count=objperpage_distn();
+                    state[fd].object_count = objperpage_distn();
                     time_us *= scalar;
                     next_start_time.tv_sec = (int) time_us;
                     next_start_time.tv_usec = (int) 
@@ -475,7 +473,8 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             }
         }
 
-        if(verbose && want_to_run_rc>0) {
+        if(verbose && want_to_run_rc>0) 
+        {
             fprintf(stdout,"%d.%06d %d %d %d %d %d (%d)\n", 
                     (int)current_time.tv_sec,(int)current_time.tv_usec,
                     FD_POP(maxfd,&fds_new),
@@ -490,9 +489,9 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
                      FD_POP(maxfd,&ids_want_to_run)));
         }
 
-        for(s=0; 
-            ((want_to_run_rc>0) && 
-             (client_id = FD_FFSandC(s, maxfd, &ids_want_to_run)));
+        for(s = 0; 
+            ((want_to_run_rc>0) 
+             && (client_id = FD_FFSandC(s, maxfd, &ids_want_to_run)));
             s = client_id+1)
         {
             int new_fd;
@@ -507,8 +506,7 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
                 continue;
             }
 	    
-            if(new_fd > maxfd) 
-                maxfd = new_fd;
+            if(new_fd > maxfd) maxfd = new_fd;
 
             state[new_fd].tx_target = objsize_distn();
             state[new_fd].rx_rcvd = 0;
@@ -516,4 +514,3 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
         }
     }
 }
-

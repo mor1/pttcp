@@ -47,7 +47,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-
 #include "trc.h"
 #include "pttcp.h"
 #include "pttcp_util.h"
@@ -77,9 +76,7 @@ simple_server(int num_ports, int base_rx_port)
 
     /* listeners on num_ports */
     if((maxlfd = create_listeners(&fds_listeners, num_ports, base_rx_port)) < 0)
-    {
         exit(-1);
-    }
 
     datafd = maxlfd+1;
 
@@ -87,16 +84,12 @@ simple_server(int num_ports, int base_rx_port)
     {
         /* grab any new incoming connections */
         rc = accept_incoming(maxlfd, &fds_listeners, &fds_active);
-        if(rc > 0)
-        {
-            opened += rc;
-        }
+        if(rc > 0) opened += rc;
+
         /*  select on the data FD's */
         rc = send_data(&fds_active, &fds_finished);
-        if(rc > 0)
-        {
-            closed += rc;
-        }
+        if(rc > 0) closed += rc;
+
         cnt++; 
 	
         gettimeofday(&now, (struct timezone *)0);
@@ -113,25 +106,14 @@ simple_server(int num_ports, int base_rx_port)
 
             for(i=datafd; i <= maxfd; i++)
             {
-                if(state[i].tx_sent_cpt) 
-                {
-                    prog++;
-                }
+                if(state[i].tx_sent_cpt) prog++;
                 totb += state[i].tx_sent_cpt;
                 mbs   = (double)(8.0*state[i].tx_sent_cpt) / (double)diffus;
                 tmbs += mbs;
 	      
-                if(state[i].open) 
-                {
-                    fprintf(stderr,"%c%.4f ",'+', mbs);
-                }
+                if(state[i].open) fprintf(stderr,"%c%.4f ",'+', mbs);
                 else
-                {
-                    if(verbose)
-                    {
-                        fprintf(stderr,"%c%.4f ",'-', mbs);
-                    }
-                }
+                    if(verbose) fprintf(stderr,"%c%.4f ",'-', mbs);
 
                 state[i].tx_sent_cpt = 0;
             }

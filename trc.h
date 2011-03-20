@@ -63,8 +63,8 @@
 #endif // _ENTER_EXIT_
 
 #ifdef _TRACE_
-# define TRC(fmt,args...)              \
-    dprintf("### [%s:%i]:%s: " ## fmt, \
+# define TRC(fmt,args...)           \
+    dprintf("### [%s:%i]:%s: " fmt, \
             __FILE__, __LINE__, __PRETTY_FUNCTION__ , ## args)
 #else
 # define TRC(fmt,args...)
