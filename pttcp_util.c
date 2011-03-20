@@ -116,7 +116,7 @@ getdouble(char *str)
     char *str2;
 
     d = strtod(str, &str2);
-    if(str == str2) fatal(stderr, "%s: not a double", str);
+    if(str == str2) fatal("%s: not a double", str);
     return (double) d;
 }
 
