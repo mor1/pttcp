@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: simple_clt.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -102,8 +102,8 @@ simple_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
         rc = sink_data(&fds_active, &fds_finished);
 
         /* close those that have finished */
-        for(s=0; 
-            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished)); 
+        for(s=0;
+            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
             s = fd+1)
         {
             double mbs;
@@ -112,26 +112,26 @@ simple_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
 
             /* rx_start/stop: when the CLIENT starts/stops receiving */
             tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
-	  
-            mbs = (double)(8.0*state[fd].rx_rcvd) / 
+
+            mbs = (double)(8.0*state[fd].rx_rcvd) /
                 (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
             tmbs += mbs;
 
-            fprintf(stderr, 
+            fprintf(stderr,
                     "Finished with %d after %d bytes (%d pkts). "
                     "%ld.%03lds = %.4f Mb/s. "
-                    "%d active\n", 
+                    "%d active\n",
                     fd, state[fd].rx_rcvd, state[fd].rx_pkts,
-                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
                     mbs/scalar, left);
 
             close(fd);
             state[fd].open=0;
             FD_CLR(fd, &fds_finished);
-        } 
+        }
     }
-    fprintf(stderr, 
+    fprintf(stderr,
             "Rough total b/w estimate was %.2f Mb/s, "
             "Average stream b/w was %.4f Mb/s\n", tmbs, tmbs/n);
 }

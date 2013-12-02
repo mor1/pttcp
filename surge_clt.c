@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: surge_clt.c,v 2.1 2000/08/09 13:15:41 rmm1002 Exp $
  *
  */
@@ -48,7 +48,7 @@ P. Barford and M.E. Crovella, "Generating representative wb workloads
 for network and server performance evaluation", In Proceedings of
 Performance '98/ ACM Sigmetrics '98 pages 151-160, 1998
 
-as used in 
+as used in
 
 Feldman A., et.al, "Dynamics of IP Traffic: A study of the role of
 variability and the impact of control", SIGCOMM'99, pp 301-313.
@@ -60,7 +60,7 @@ the four stages are
 -- interpage: time between consequtive pages downloaded in one session
 
 -- objperpage: number of objects within a web page; all such objects
-	are retrieved from the server before waiting for another page.
+    are retrieved from the server before waiting for another page.
 
 -- interobj: time between retriving each object on a single page.
 
@@ -107,7 +107,7 @@ Exp 1    :
 -- interpage pareto 25 2 \
 -- objperpage constant 1 \
 -- interobj constant 0 \
--- objsize exponent 12000 
+-- objsize exponent 12000
 
 Exp 2    :
 -- interpage exponent 10 \
@@ -168,9 +168,9 @@ distn objsize;    /* distn. function for bytes per object  */
 #define objsize_distn()    (((G_os = objsize.function(&objsize)) < 1) ? 1 : G_os)
 
 /*********************************************************************
- * routines used by surge_clt things 
+ * routines used by surge_clt things
  */
-double 
+double
 constant(distn *d)
 {
     return (d->mean);
@@ -206,12 +206,12 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
     int theType;
 
     (*optind)--;
-    for(theType=0; theType < Distn_Function_nTypes; theType++) 
+    for(theType=0; theType < Distn_Function_nTypes; theType++)
     {
-        if(!strncmp(argv[*optind], Distn_Function_Type[theType], 255)) 
+        if(!strncmp(argv[*optind], Distn_Function_Type[theType], 255))
             break;
     }
-    switch(theType) 
+    switch(theType)
     {
         case Distn_Function_Constant:
         {
@@ -229,7 +229,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
             (*optind)++;
             rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-            if(rc != 1) 
+            if(rc != 1)
             {
                 fprintf(stderr,
                         "%s: bad constant %s \n", __FUNCTION__, argv[*optind]);
@@ -242,7 +242,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
         {
             /* one additional argument for a exponential generator the
              * mean */
-            if((argc - *optind) < 2) 
+            if((argc - *optind) < 2)
             {
                 fprintf(stderr,
                         "%s: exponent requries one argument (mean)\n", __FUNCTION__);
@@ -252,9 +252,9 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
             distribution->function = expon;
 
-            (*optind)++;	
+            (*optind)++;
             rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-            if(rc != 1) 
+            if(rc != 1)
             {
                 fprintf(stderr,
                         "%s: bad constant %s \n", __FUNCTION__, argv[*optind]);
@@ -265,9 +265,9 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
         case Distn_Function_Pareto:
         {
-            if((argc - *optind) < 3) 
+            if((argc - *optind) < 3)
             {
-                fprintf(stderr,                        
+                fprintf(stderr,
                         "%s: pareto requries two arguments (mean and shape)\n",
                         __FUNCTION__);
                 rv = -1;
@@ -280,7 +280,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
             (*optind)++;
             rc = sscanf(argv[*optind], "%lg", &distribution->mean);
-            if(rc != 1) 
+            if(rc != 1)
             {
                 fprintf(stderr,
                         "%s: bad mean %s \n", __FUNCTION__, argv[*optind]);
@@ -289,7 +289,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
             (*optind)++;
             rc = sscanf(argv[*optind], "%lg", &distribution->shape);
-            if(rc != 1) 
+            if(rc != 1)
             {
                 fprintf(stderr,
                         "%s: bad shape %s \n", __FUNCTION__, argv[*optind]);
@@ -300,7 +300,7 @@ parse_distn(distn *distribution, int *optind, char **argv, int argc)
 
         default:
             fprintf(stderr,
-                    "%s: unknown distribution type %s\n", 
+                    "%s: unknown distribution type %s\n",
                     __FUNCTION__, argv[*optind]);
             rv = -1;
     }
@@ -318,7 +318,7 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
 {
     int i;
     fd_set fds_new, fds_active, fds_finished, ids_sleeping, ids_want_to_run;
-    unsigned long ipaddr;    
+    unsigned long ipaddr;
     double tmbs=0;
     double time_us;
 
@@ -375,14 +375,14 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
         sink_data_rc = sink_data(&fds_active, &fds_finished);
 
         /* close those that have finished */
-        for(s=0; 
+        for(s=0;
             (sink_data_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
             s = fd+1)
         {
             double mbs;
 
             tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
-	  
+
             mbs = (double)(8.0*state[fd].rx_rcvd) /
                 (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
@@ -393,10 +393,10 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             if(verbose)
                 fprintf(stderr,
                         "%d.%06d Finished with %d after %d bytes. "
-                        "%ld.%03lds = %.4f Mb/s.\n", 
+                        "%ld.%03lds = %.4f Mb/s.\n",
                         (int)current_time.tv_sec,(int)current_time.tv_usec,
-                        fd, state[fd].rx_rcvd, 
-                        (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                        fd, state[fd].rx_rcvd,
+                        (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
                         mbs/scalar);
 
             close(fd);
@@ -423,8 +423,8 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
 
             time_us *= scalar;
             next_start_time.tv_sec = (int) time_us;
-            next_start_time.tv_usec = (int) 
-                ((time_us - (double)next_start_time.tv_sec) 
+            next_start_time.tv_usec = (int)
+                ((time_us - (double)next_start_time.tv_sec)
                  * 1e6 );
             tvadd(&state[state[fd].client_id].next_start_time,&state[fd].rx_stop,
                   &next_start_time);
@@ -441,12 +441,12 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
         for(s=0;(client_id = FD_FFS(s, maxfd, &ids_sleeping));
             s = client_id+1)
         {
-	
+
             gettimeofday(&current_time,NULL);
 
-            if(tveqless(&state[client_id].next_start_time,&current_time)) 
+            if(tveqless(&state[client_id].next_start_time,&current_time))
             {
-                if(state[client_id].object_count > 0) 
+                if(state[client_id].object_count > 0)
                 {
                     FD_CLR(client_id, &ids_sleeping);
                     FD_SET(client_id, &ids_want_to_run);
@@ -463,8 +463,8 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
                     state[fd].object_count = objperpage_distn();
                     time_us *= scalar;
                     next_start_time.tv_sec = (int) time_us;
-                    next_start_time.tv_usec = (int) 
-                        ((time_us - (double)next_start_time.tv_sec) 
+                    next_start_time.tv_usec = (int)
+                        ((time_us - (double)next_start_time.tv_sec)
                          * 1e6 );
                     tvadd(&state[state[fd].client_id].next_start_time,
                           &state[fd].rx_stop,
@@ -473,9 +473,9 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
             }
         }
 
-        if(verbose && want_to_run_rc>0) 
+        if(verbose && want_to_run_rc>0)
         {
-            fprintf(stdout,"%d.%06d %d %d %d %d %d (%d)\n", 
+            fprintf(stdout,"%d.%06d %d %d %d %d %d (%d)\n",
                     (int)current_time.tv_sec,(int)current_time.tv_usec,
                     FD_POP(maxfd,&fds_new),
                     FD_POP(maxfd,&fds_active),
@@ -489,8 +489,8 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
                      FD_POP(maxfd,&ids_want_to_run)));
         }
 
-        for(s = 0; 
-            ((want_to_run_rc>0) 
+        for(s = 0;
+            ((want_to_run_rc>0)
              && (client_id = FD_FFSandC(s, maxfd, &ids_want_to_run)));
             s = client_id+1)
         {
@@ -505,7 +505,7 @@ surge_client(int n, char *host, int num_ports, int base_rx_port)
                 fprintf(stderr,"Unable to open connection!\n");
                 continue;
             }
-	    
+
             if(new_fd > maxfd) maxfd = new_fd;
 
             state[new_fd].tx_target = objsize_distn();

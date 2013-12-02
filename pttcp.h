@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: pttcp.h,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -74,7 +74,7 @@ typedef enum {
 } pttcp_t;
 
 /*********************************************************************
- * important constants 
+ * important constants
  */
 #define BUF_SIZE      1448
 #define SAMPLE_PERIOD 5e6 /* in microsecs */
@@ -85,15 +85,15 @@ typedef enum {
 
 void surge_client(int n, char *host, int num_ports, int base_rx_port);
 
-void continuous_client(int n, int bytes, char *host, int num_ports, 
+void continuous_client(int n, int bytes, char *host, int num_ports,
                        int base_rx_port);
 
-void simple_tx(int n, int bytes, char *host, int num_ports, 
+void simple_tx(int n, int bytes, char *host, int num_ports,
                int base_rx_port);
 
 void simple_rx(int num_ports, int base_rx_port);
 
-void simple_client(int n, int bytes, char *host, int num_ports, 
+void simple_client(int n, int bytes, char *host, int num_ports,
                    int base_rx_port);
 
 void simple_server(int num_ports, int base_rx_port);
@@ -102,10 +102,10 @@ int sink_data(fd_set *fds_active, fd_set *fds_finished);
 
 void send_request(fd_set *fds_new, fd_set *fds_active);
 
-int create_listeners(fd_set *fds_listeners, int num_ports, 
+int create_listeners(fd_set *fds_listeners, int num_ports,
                      int base_rx_port);
 
-int accept_incoming(int maxlfd, fd_set *fds_listeners, 
+int accept_incoming(int maxlfd, fd_set *fds_listeners,
                     fd_set *fds_active);
 
 #endif /* _pttcp_h_ */

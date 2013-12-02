@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: simple_rx.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -65,7 +65,7 @@ simple_rx(int num_ports, int base_rx_port)
     int datafd, maxlfd;
     unsigned long diffus;
     struct timeval last, diff, now={ 0L, 0L };
-    int opened=0, closed=0, cnt=0; 
+    int opened=0, closed=0, cnt=0;
     fd_set fds_listeners, fds_active, fds_finished;
 
     int s, rc, fd;
@@ -90,23 +90,23 @@ simple_rx(int num_ports, int base_rx_port)
         rc = sink_data(&fds_active, &fds_finished);
         if(rc > 0) closed += rc;
 
-        cnt++; 
-		
+        cnt++;
+
         /* close those that have finished */
-        for(s=0; 
-            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished)); 
+        for(s=0;
+            (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
             s = fd+1)
         {
             close(fd);
             state[fd].open = 0;
             FD_CLR(fd, &fds_finished);
         }
-	
+
         gettimeofday(&now, (struct timezone *)0);
 
         tvsub(&diff, &now, &last);
         diffus = diff.tv_sec*1e6 + diff.tv_usec;
-       
+
         if(diffus > SAMPLE_PERIOD)
         {
             int i, totb=0, prog=0;
@@ -120,19 +120,19 @@ simple_rx(int num_ports, int base_rx_port)
                 totb += state[i].rx_rcvd_cpt;
                 mbs   = (double)(8.0*state[i].rx_rcvd_cpt) / (double)diffus;
                 tmbs += mbs;
-	      
+
                 if(state[i].open) fprintf(stderr,"%c%.4f ",'+', mbs);
                 else
                     if(verbose) fprintf(stderr,"%c%.4f ",'-', mbs);
                 state[i].rx_rcvd_cpt = 0;
             }
 
-            fprintf(stderr, 
+            fprintf(stderr,
                     "\n\t %d streams active, %d made progress: "
                     "tot = %d, tot Mb/s = %.2f\n"
                     "\t opened %d, closed %d descriptors (loop count %d)\n\n",
-                    FD_POP(maxfd, &fds_active), prog, 
-                    totb, tmbs/scalar, 
+                    FD_POP(maxfd, &fds_active), prog,
+                    totb, tmbs/scalar,
                     opened, closed, cnt);
             opened = closed = cnt = 0;
             last = now;

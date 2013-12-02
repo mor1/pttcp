@@ -62,7 +62,7 @@
 #include "surge_clt.h"
 
 /*********************************************************************
- * Global variables 
+ * Global variables
  */
 char        *prog_name;
 state_t      state[ __FD_SETSIZE ];
@@ -78,7 +78,7 @@ int          verbose   = 0;
 const struct timeval tsmallerpause = { 0,    1 }; /* 1us */
 const struct timeval tpause        = { 0, 1000 }; /* 1ms */
 const struct timeval tlongerpause  = { 0, 100000 }; /* 100ms */
-const struct timeval tzero         = { 0,    0 }; 
+const struct timeval tzero         = { 0,    0 };
 
 extern char *optarg;
 extern int optind, opterr, optopt;
@@ -100,14 +100,14 @@ static const struct option long_options[] =
 };
 
 /*********************************************************************
- * handle ^C (SIGINT) 
+ * handle ^C (SIGINT)
  */
-void 
+void
 shut_sockets(int signum)
 {
     int i;
 
-    if(signum == SIGALRM) 
+    if(signum == SIGALRM)
         if(verbose) fprintf(stderr,"timesup\n");
     if(verbose) printf("Shutdown called\n");
 
@@ -144,7 +144,7 @@ usage(char *name)
     exit(1);
 }
 
-int 
+int
 main(int argc, char **argv)
 {
     int rc, c, n = 1, bytes = 512*1025;
@@ -161,9 +161,9 @@ main(int argc, char **argv)
     objsize.function    = constant;
 
     while((c = getopt_long(argc, argv, "S:vR:B:N:D:T:rt:sc:n:b:",
-                           long_options, NULL)) != -1) 
+                           long_options, NULL)) != -1)
     {
-        switch(c) 
+        switch(c)
         {
             case 'v':
                 verbose++;
@@ -194,11 +194,11 @@ main(int argc, char **argv)
                 unsigned short seed_16v[3];
                 unsigned long  full_seed;
                 int            rc;
-	    
+
                 rc = sscanf(optarg,"%ld",&full_seed);
-            
+
                 if(rc != 1) usage(argv[0]);
-                        
+
                 seed_16v[0] = (short)(0xffffl & full_seed);
                 seed_16v[1] = (short)((~0xffffl & full_seed) >> 16);
                 seed_16v[2] = (short)((~0xffl & full_seed) >> 8); /* XXX */
@@ -211,7 +211,7 @@ main(int argc, char **argv)
                 else
                     usage(argv[0]);
                 break;
-      
+
             case 't':          /* transmitter */
                 if(mode == unset) mode = tx;
                 else
@@ -273,38 +273,38 @@ main(int argc, char **argv)
 
     /* SIGPIPE caused by RST connection; ignore and deal with errno
      * from initial write */
-    signal(SIGPIPE, SIG_IGN); 
+    signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  shut_sockets);
     signal(SIGALRM, shut_sockets);
 
-    if(run_time >= 0) 
+    if(run_time >= 0)
     {
         struct itimerval run_time_timerval;
         int rc;
-	
+
         run_time = run_time * scalar;
-	
+
         run_time_timerval.it_interval.tv_sec  = 0;
         run_time_timerval.it_interval.tv_usec = 0;
-	
+
         run_time_timerval.it_value.tv_sec = (int) run_time;
-        run_time_timerval.it_value.tv_usec = 
+        run_time_timerval.it_value.tv_usec =
             (int) ((run_time - (double)run_time_timerval.it_value.tv_sec) * 1e6 );
 
-        if(verbose) 
+        if(verbose)
             fprintf(stderr,"run time %d.%06d\n",
                     (int)run_time_timerval.it_interval.tv_sec,
                     (int)run_time_timerval.it_interval.tv_usec);
-	
+
         rc = setitimer(ITIMER_REAL, &run_time_timerval,NULL);
-        if(rc != 0) 
+        if(rc != 0)
         {
             perror("setitimer");
             exit(-1);
         }
     }
 
-    switch(mode)    
+    switch(mode)
     {
         case rx:
             simple_rx(num_ports, base_port);
@@ -329,7 +329,7 @@ main(int argc, char **argv)
         case surge_clt:
             surge_client(n, dhost, num_ports, base_port);
             break;
-	    
+
         case unset:
         default:
             usage(argv[0]);
@@ -338,9 +338,9 @@ main(int argc, char **argv)
 }
 
 /*********************************************************************
- * create listening sockets on [base_rx_port, base_rx_port+num_ports] 
+ * create listening sockets on [base_rx_port, base_rx_port+num_ports]
  */
-int 
+int
 create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
 {
     int i, fd, maxfd=0;
@@ -359,13 +359,13 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
 
         bzero((char *)&state[fd].sinme, sizeof(state[fd].sinme));
         state[fd].sinme.sin_port =  htons(base_rx_port+i);
-      
+
 #if 0
         /* 6 = TCP */
         if(setsockopt(fd, 6, SO_REUSEADDR, &on, sizeof(int)) < 0)
         {
             perror("SO_REUSEADDR");
-            return -1;	  
+            return -1;
         }
 #endif
 
@@ -374,7 +374,7 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
             perror("bind");
             RETURN -1;
         }
-        if(ioctl(fd, FIONBIO, (char*)&on) < 0) 
+        if(ioctl(fd, FIONBIO, (char*)&on) < 0)
         {
             perror("FIONBIO");
             RETURN -1;
@@ -384,7 +384,7 @@ create_listeners(fd_set *fds_listeners, int num_ports, int base_rx_port)
             perror("listen");
             RETURN -1;
         }
-      
+
         FD_SET(fd, fds_listeners);
 
         if(fd > maxfd) maxfd = fd;
@@ -405,7 +405,7 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
     ENTER;
 
     tmp_timeout = tzero;
-			 
+
     fds_tmp1 = *fds_listeners;
     fds_tmp2 = *fds_listeners;
 
@@ -416,14 +416,14 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
         fprintf(stderr, "listen: got an exception on fd %d !!\n", fd);
         exit(-1);
     }
-    
+
     /* accept any new requests */
     for(s=0; (rc>0) && (fd = FD_FFSandC(s, maxlfd, &fds_tmp1)); s = fd+1)
     {
         struct sockaddr_in frominet;
         socklen_t fromlen;
-        
-        fromlen = sizeof(frominet);      
+
+        fromlen = sizeof(frominet);
         if((new_fd = accept(fd, (struct sockaddr *)&frominet, &fromlen)) < 0)
         {
             perror("accept");
@@ -433,14 +433,14 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
         {
             if(verbose)
                 fprintf(stderr, "[ accept new_fd %d from fd %d ]\n", new_fd, fd);
-            
+
             if(new_fd > maxfd) maxfd = new_fd;
-            if(ioctl(new_fd, FIONBIO, (char*)&on) < 0) 
+            if(ioctl(new_fd, FIONBIO, (char*)&on) < 0)
             {
                 perror("FIONBIO");
                 return -1;
             }
-	  
+
             state[new_fd].sinme     = state[fd].sinme;
             state[new_fd].sinhim    = frominet;
 
@@ -458,16 +458,16 @@ accept_incoming(int maxlfd, fd_set *fds_listeners, fd_set *fds_active)
 
             FD_SET(new_fd, fds_active);
             count++;
-        }	 
-    }  
+        }
+    }
     RETURN count;
 }
 
 /*********************************************************************
  * catch exceptions (=> drop socket) and suck data from those with
- * data waiting 
+ * data waiting
  */
-int 
+int
 sink_data(fd_set *fds_active, fd_set *fds_finished)
 {
     int s, sel_rc, fd, fin = 0;
@@ -483,13 +483,13 @@ sink_data(fd_set *fds_active, fd_set *fds_finished)
 
     /* 100ms timeout */
     sel_rc = select(maxfd+1, &fds_tmp1, &fds_zero, &fds_tmp2, &tmp_timeout);
-    
+
     /* check for exceptions */
     for(s=0; (sel_rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
     {
         /* this shouldn't happen... */
-        fprintf(stderr, 
-                "rx data: got EXCEPTION on fd %d after %d bytes (%d pkts)\n", 
+        fprintf(stderr,
+                "rx data: got EXCEPTION on fd %d after %d bytes (%d pkts)\n",
                 fd, state[fd].rx_rcvd, state[fd].rx_pkts);
         close(fd);
         state[fd].open = 0;
@@ -523,16 +523,16 @@ sink_data(fd_set *fds_active, fd_set *fds_finished)
                 state[fd].rx_rcvd_cpt += recv_rc;
                 state[fd].rx_pkts++;
             }
-        }	  	  
+        }
     }
     RETURN fin;
 }
 
 /*********************************************************************
  * client request amt of data from server; marks connection new ->
- * active 
+ * active
  */
-void 
+void
 send_request(fd_set *fds_new, fd_set *fds_active)
 {
     struct timeval tmp_timeout;
@@ -545,7 +545,7 @@ send_request(fd_set *fds_new, fd_set *fds_active)
 
     rc = select(maxfd+1, &fds_zero, &fds_tmp1, &fds_tmp2, &tmp_timeout);
     if(rc < 0)
-    {	
+    {
         perror("select");
         exit(-1);
     }
@@ -555,7 +555,7 @@ send_request(fd_set *fds_new, fd_set *fds_active)
     /* check for exceptions first */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
         printf("[ send request: got an exception on fd %d ]\n", fd);
-	
+
     if(s) exit(-1);
 
     /* check for fds ready to write */
@@ -579,12 +579,12 @@ send_request(fd_set *fds_new, fd_set *fds_active)
 }
 
 /*********************************************************************
- * svr: (server) (send_data) rx request -> 
+ * svr: (server) (send_data) rx request ->
  *                        (send_data) tx amt of data (miss FIN/ACK RTT)
- * tx : (send_simple_traffic) successful open conn. -> 
+ * tx : (send_simple_traffic) successful open conn. ->
  *                        (send_data) tx amt of data (miss FIN/ACK RTT)
  *
- * clt: (continuous_client) (send_request) send rx request -> 
+ * clt: (continuous_client) (send_request) send rx request ->
  *                        (sink_data) read EOF from sock.
  * rx : (rx_sink) (accept_incoming) accept connection ->
  *                        (sink_data) read EOF from sock.

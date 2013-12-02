@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: cts_clt.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -59,7 +59,7 @@ extern int     verbose;
 
 /*********************************************************************
  * keep n connections open continuously; request `bytes' bytes each
- * time 
+ * time
  */
 void
 continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
@@ -109,7 +109,7 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
         rc = sink_data(&fds_active, &fds_finished);
 
         /* close those that have finished */
-        for(s=0; 
+        for(s=0;
             (rc>0) && (fd = FD_FFSandC(s, maxfd, &fds_finished));
             s = fd+1)
         {
@@ -117,17 +117,17 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
             int new_fd;
 
             tvsub(&tdiff, &state[fd].rx_stop, &state[fd].rx_start);
-	  
-            mbs = (double)(8.0*state[fd].rx_rcvd) 
+
+            mbs = (double)(8.0*state[fd].rx_rcvd)
                   / (double)(tdiff.tv_sec*1.e6 + tdiff.tv_usec);
 
             tmbs += mbs;
 
-            fprintf(stderr, 
+            fprintf(stderr,
                     "Finished with %d after %d bytes. %ld.%03lds = %.4f "
-                    "Mb/s.\n", 
-                    fd, state[fd].rx_rcvd, 
-                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000, 
+                    "Mb/s.\n",
+                    fd, state[fd].rx_rcvd,
+                    (long int)tdiff.tv_sec, (long int)tdiff.tv_usec/1000,
                     mbs/scalar);
 
             close(fd);
@@ -143,11 +143,11 @@ continuous_client(int n, int bytes, char *host, int num_ports, int base_rx_port)
                 fprintf(stderr, "Unable to open connection!\n");
                 continue;
             }
-	  
+
             if(new_fd > maxfd) maxfd = new_fd;
-	  
+
             state[new_fd].rx_rcvd = 0;
             FD_SET(new_fd, &fds_new);
-        } 
+        }
     }
 }

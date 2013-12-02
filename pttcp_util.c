@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: pttcp_util.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -150,7 +150,7 @@ tveqless(struct timeval *t1, struct timeval *t0)
         ((t1->tv_sec < t0->tv_sec) ||
          ((t1->tv_sec == t0->tv_sec) && (t1->tv_usec <= t0->tv_usec)))
         ? 1
-        : 0); 
+        : 0);
 }
 
 /* safe timeval add: t1+t0 */
@@ -179,7 +179,7 @@ tvsub(struct timeval *tdiff, struct timeval *t1, struct timeval *t0)
 
 /* count 1s ("population") in (binary) w */
 #ifdef NFDBITS64
-inline u_int32_t 
+inline u_int32_t
 pop_count(u_int64_t w)
 {
     u_int64_t res = (w & 0x5555555555555555ULL) + ((w >> 1) & 0x5555555555555555ULL);
@@ -188,7 +188,7 @@ pop_count(u_int64_t w)
     res = (res & 0x00FF00FF00FF00FFULL) + ((res >>  8) & 0x00FF00FF00FF00FFULL);
     res = (res & 0x0000FFFF0000FFFFULL) + ((res >> 16) & 0x0000FFFF0000FFFFULL);
     return (u_int32_t)
-        ((res & 0x00000000FFFFFFFFULL) + ((res >> 32) & 0x00000000FFFFFFFFULL)); 
+        ((res & 0x00000000FFFFFFFFULL) + ((res >> 32) & 0x00000000FFFFFFFFULL));
 }
 #else
 inline u_int32_t
@@ -201,7 +201,7 @@ pop_count(u_int32_t w)
     return (res & 0x0000FFFF) + ((res >> 16) & 0x0000FFFF);
 }
 #endif
-      
+
 /* population count, noting that fd set may be more than a single
  * unsigned int in size */
 int
@@ -230,7 +230,7 @@ FD_POP(int maxfd, fd_set *fd)
 }
 
 /* find first 1 in (binary) fd set after `start' */
-int 
+int
 FD_FFS(int start, int maxfd, fd_set *fd)
 {
     int i,j;
@@ -252,7 +252,7 @@ FD_FFS(int start, int maxfd, fd_set *fd)
             x &= ((~((u_int32_t)0)) << (start % NFDBITS));
 #endif
             start = 0;
-        }	    
+        }
 
         if(x == 0) continue;  /* nothing set here */
 
@@ -268,7 +268,7 @@ FD_FFS(int start, int maxfd, fd_set *fd)
 
 /* the following assumes all bits before `start' are clear, and clears
  * the bit it finds from the fd set; i.e. as above, but clear that bit */
-int 
+int
 FD_FFSandC(int start, int maxfd, fd_set *fd)
 {
     int i,j=0;
@@ -315,30 +315,30 @@ create_tx_tcp(unsigned long d_ipaddr, int d_port)
     state[fd].open = 1;
 
     bzero((char *)&state[fd].sinme, sizeof(state[fd].sinme));
-    if(bind(fd, 
+    if(bind(fd,
             (const struct sockaddr *)&state[fd].sinme, sizeof(state[fd].sinme)) < 0)
     {
         perror("bind");
         RETURN -1;
     }
 
-    if(ioctl(fd, FIONBIO, (char*)&on) < 0) 
+    if(ioctl(fd, FIONBIO, (char*)&on) < 0)
     {
         perror("FIONBIO");
         RETURN -1;
     }
-  
+
     bzero((char *)&state[fd].sinhim, sizeof(state[fd].sinhim));
     state[fd].sinhim.sin_family      = AF_INET;
     state[fd].sinhim.sin_port        = htons(d_port);
     state[fd].sinhim.sin_addr.s_addr = d_ipaddr;
 
-    if(connect(fd, 
-               (const struct sockaddr *)&state[fd].sinhim, 
+    if(connect(fd,
+               (const struct sockaddr *)&state[fd].sinhim,
                sizeof(state[fd].sinhim)) < 0)
         if(errno != EINPROGRESS)
         {
-            perror("connect");      
+            perror("connect");
             RETURN -1;
         }
     RETURN fd;
@@ -353,7 +353,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
     int sel_rc, fd, s, fin=0;
     char buf[BUF_SIZE];
     ENTER;
-    
+
     fd_set fds_tmp0, fds_tmp1, fds_tmp2;
 
     fds_tmp0 = fds_tmp1 = fds_tmp2 = *fds_active;
@@ -361,7 +361,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
 
     sel_rc = select(maxfd+1, &fds_tmp0, &fds_tmp1, &fds_tmp2, &tmp_timeout);
     if(sel_rc < 0)
-    {	
+    {
         perror("select");
         exit(-1);
     }
@@ -370,7 +370,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
 
     /* check for exceptions first */
     for(s=0; (fd = FD_FFSandC(s, maxfd, &fds_tmp2)); s = fd+1)
-        printf("Got an exception on fd %d\n", fd);	
+        printf("Got an exception on fd %d\n", fd);
     if(s) exit(-1);
 
     /* check for any ready to read */
@@ -378,7 +378,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
     {
         int rc;
         u_int32_t bytes;
-	
+
         rc = read(fd, &bytes, sizeof(u_int32_t));
         if(rc == sizeof(u_int32_t))
         {
@@ -401,7 +401,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
         int diff, len, actual;
 
         diff = state[fd].tx_target - state[fd].tx_sent;
-	
+
         if(diff == 0) continue;
 
         len = MIN(diff, BUF_SIZE);
@@ -415,7 +415,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
             if(errno == EWOULDBLOCK) continue;
             else if(errno == EPIPE)
             {
-                fprintf(stderr, 
+                fprintf(stderr,
                         "[ fd %d received EPIPE; closing socket... ]\n", fd);
                 if(state[fd].open)
                 {
@@ -427,7 +427,7 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
                     fin++;
                 }
                 else
-                    fprintf(stderr, 
+                    fprintf(stderr,
                             "[ fd %d received EPIPE whilst not open! ]\n", fd);
             }
             else /* other errno */
@@ -454,11 +454,11 @@ send_data(fd_set *fds_active, fd_set *fds_finished)
                 state[fd].open = 0;
                 FD_SET(fd, fds_finished);
 
-                gettimeofday(&state[fd].tx_stop, (struct timezone *)0);	    
+                gettimeofday(&state[fd].tx_stop, (struct timezone *)0);
                 tvsub(&d, &state[fd].tx_stop, &state[fd].tx_start);
                 printf("[ finished sending %d bytes (%d pkts) to fd %d "
                        "in %lu.%03lds ]\n",
-                       state[fd].tx_target, state[fd].tx_pkts, fd, 
+                       state[fd].tx_target, state[fd].tx_pkts, fd,
                        d.tv_sec, (long int)d.tv_usec/1000);
 
                 fin++;

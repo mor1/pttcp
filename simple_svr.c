@@ -1,5 +1,5 @@
 /***********************************************************************
- * 
+ *
  * $Id: simple_svr.c,v 2.0 2000/05/03 20:26:34 rmm1002 Exp $
  *
  */
@@ -65,7 +65,7 @@ simple_server(int num_ports, int base_rx_port)
     int datafd, maxlfd;
     unsigned long diffus;
     struct timeval last, diff, now ={ 0L, 0L };
-    int opened=0, closed=0, cnt=0; 
+    int opened=0, closed=0, cnt=0;
     fd_set fds_listeners, fds_active, fds_finished;
 
     int rc;
@@ -90,13 +90,13 @@ simple_server(int num_ports, int base_rx_port)
         rc = send_data(&fds_active, &fds_finished);
         if(rc > 0) closed += rc;
 
-        cnt++; 
-	
+        cnt++;
+
         gettimeofday(&now, (struct timezone *)0);
-	
+
         tvsub(&diff, &now, &last);
         diffus = diff.tv_sec*1e6 + diff.tv_usec;
-	
+
         if(diffus > SAMPLE_PERIOD)
         {
             int i, totb=0, prog=0;
@@ -110,7 +110,7 @@ simple_server(int num_ports, int base_rx_port)
                 totb += state[i].tx_sent_cpt;
                 mbs   = (double)(8.0*state[i].tx_sent_cpt) / (double)diffus;
                 tmbs += mbs;
-	      
+
                 if(state[i].open) fprintf(stderr,"%c%.4f ",'+', mbs);
                 else
                     if(verbose) fprintf(stderr,"%c%.4f ",'-', mbs);
@@ -118,16 +118,16 @@ simple_server(int num_ports, int base_rx_port)
                 state[i].tx_sent_cpt = 0;
             }
 
-            fprintf(stderr, 
+            fprintf(stderr,
                     "\n\t %d streams active, %d made progress: "
                     "tot = %d, tot Mb/s = %.2f\n"
                     "\t opened %d, closed %d descriptors (loop count %d)\n\n",
-                    FD_POP(maxfd, &fds_active), prog, 
-                    totb, tmbs/scalar, 
+                    FD_POP(maxfd, &fds_active), prog,
+                    totb, tmbs/scalar,
                     opened, closed, cnt);
-	    
+
             opened = closed = cnt = 0;
-            last = now; 
+            last = now;
         }
     } /* end of while 1 */
 }
